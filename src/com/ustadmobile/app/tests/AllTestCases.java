@@ -15,18 +15,19 @@ import com.ustadmobile.app.tests.TestUtils;
 public class AllTestCases extends TestCase {
 
     public Test suite() {
-//        try {
-//            TestUtils.loadTestSettings();
-//        }catch(Exception e) {
-//            e.printStackTrace();
-//            throw new RuntimeException(e.toString());
-//        }
+        try {
+            TestUtils.loadTestSettings();
+        }catch(Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException(e.toString());
+        }
         
         System.out.println("Starting Tests..");
         TestSuite allTestSuite = new TestSuite("AlltestSuites");
         
         allTestSuite.addTest(new TestSimple());
         allTestSuite.addTest(new TestFileAccess());
+        allTestSuite.addTest(new TestXmlParse());
         return allTestSuite;
 
     }

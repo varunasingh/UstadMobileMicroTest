@@ -11,9 +11,9 @@ import java.io.InputStream;
 import java.util.Hashtable;
 import javax.microedition.io.Connector;
 import javax.microedition.io.HttpConnection;
-//import org.kxml2.io.KXmlParser;
-//import org.xmlpull.v1.XmlPullParser;
-//import org.xmlpull.v1.XmlPullParserException;
+import org.kxml2.io.KXmlParser;
+import org.xmlpull.v1.XmlPullParser;
+import org.xmlpull.v1.XmlPullParserException;
 import com.ustadmobile.app.controller.UstadMobileAppController;
 import javax.microedition.io.file.FileConnection;
 
@@ -45,7 +45,6 @@ public class TestUtils {
         return null;
     }
     
-    /*
     public static void loadTestSettings() throws Exception{
         //load from the file
         String appDataURI = UstadMobileAppController.setupAppDataDir();
@@ -72,7 +71,7 @@ public class TestUtils {
         is.close();
         fCon.close();
         
-    }*/
+    }
     
     public static InputStream getFileBytes(String fileURI) 
             throws IOException{
@@ -111,11 +110,9 @@ public class TestUtils {
         return bais;
     }
     
-    /*
     public static XmlPullParser parseXml(InputStream is) throws XmlPullParserException, IOException{
         KXmlParser parser = new KXmlParser();
         parser.setInput(is, "utf-8");
         return parser;
-        
-    }*/
+    }
 }
