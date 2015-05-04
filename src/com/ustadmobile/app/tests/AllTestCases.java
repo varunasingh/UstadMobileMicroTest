@@ -6,6 +6,7 @@ package com.ustadmobile.app.tests;
 import j2meunit.framework.Test;
 import j2meunit.framework.TestCase;
 import j2meunit.framework.TestSuite;
+import com.ustadmobile.app.tests.TestUtils;
 
 /**
  *
@@ -25,7 +26,7 @@ public class AllTestCases extends TestCase {
         TestSuite allTestSuite = new TestSuite("AlltestSuites");
         
         allTestSuite.addTest(new TestSimple());
-        
+        allTestSuite.addTest(new TestFileAccess());
         return allTestSuite;
 
     }
