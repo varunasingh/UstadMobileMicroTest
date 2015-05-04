@@ -28,6 +28,8 @@ public class AllTestCases extends TestCase {
         allTestSuite.addTest(new TestSimple());
         allTestSuite.addTest(new TestFileAccess());
         allTestSuite.addTest(new TestXmlParse());
+        allTestSuite.addTest(new TestOPDSParse());
+        allTestSuite.addTest(new TestOPFParse());
         return allTestSuite;
 
     }
