@@ -1,0 +1,1 @@
+ant -f antenna-build.xml -lib /opt/antenna sign

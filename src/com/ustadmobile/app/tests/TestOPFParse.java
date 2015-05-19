@@ -21,9 +21,14 @@ public class TestOPFParse extends TestCase{
     
     public void runTest() throws Throwable{
         
-        InputStream bais = TestUtils.getFileBytes(
+        /*InputStream bais = TestUtils.getFileBytes(
                 TestUtils.testSettings.get("appDataURI").toString() + "/" +
                 TestUtils.testSettings.get("opfxml").toString());
+        */
+        String fileURI = "/com/ustadmobile/app/tests/" + 
+                TestUtils.testSettings.get("opfxml").toString();
+        InputStream bais = getClass().getResourceAsStream(
+                fileURI); 
         
         /*ByteArrayInputStream bais = 
                 TestUtils.getHTTPBytes(

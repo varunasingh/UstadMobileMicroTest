@@ -23,13 +23,13 @@ public class TestXmlParse extends TestCase {
         }
         
         assertEquals("Hashtable XML Parse test-settings.xml", "test.opds",
-                TestUtils.testSettings.get("opdsxml"));
+                TestUtils.getInstance().testSettings.get("opdsxml"));
         assertEquals("Hashtable XML Parse test-settings.xml OPF", "test.opf",
-                TestUtils.testSettings.get("opfxml"));
+                TestUtils.getInstance().testSettings.get("opfxml"));
         assertEquals("Hashtable XML Parse test-settings.xml username", "mike", 
-                TestUtils.testSettings.get("username"));
+                TestUtils.getInstance().testSettings.get("username"));
         assertEquals("Hashtable XML Parse test-settings.xml password", "secret",
-                TestUtils.testSettings.get("password"));
+                TestUtils.getInstance().testSettings.get("password"));
         
         
         

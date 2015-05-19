@@ -23,10 +23,14 @@ public class TestOPDSParse extends TestCase{
     }
     
     protected void runTest() throws Throwable {
-        String fileURI = TestUtils.testSettings.get("appDataURI").toString() + "/" +
+        String fileURI = "/com/ustadmobile/app/tests/" + 
                 TestUtils.testSettings.get("opdsxml").toString();
+        InputStream bais = getClass().getResourceAsStream(
+                fileURI);       
+        /*String fileURI = TestUtils.testSettings.get("appDataURI").toString() + "/" +
+                TestUtils.testSettings.get("opdsxml").toString(); 
+        InputStream bais = TestUtils.getFileBytes(fileURI);*/
         
-        InputStream bais = TestUtils.getFileBytes(fileURI);
         /*ByteArrayInputStream bais = 
                 TestUtils.getHTTPBytes(TestUtils.testSettings.get("opdsxml").toString());*/
         KXmlParser parser = new KXmlParser();

@@ -16,7 +16,6 @@ public class TestSimple extends TestCase {
     }
     
     public void runTest() throws Throwable{
-    
         assertEquals("Simple Test OK", 2, 1+1);
         
     }

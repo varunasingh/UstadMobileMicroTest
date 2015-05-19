@@ -4,10 +4,10 @@
  */
 package com.ustadmobile.app.controller;
 
-import java.io.InputStream;
+import com.ustadmobile.app.DeviceRoots;
 import javax.microedition.io.Connector;
 import javax.microedition.io.file.FileConnection;
-
+import com.ustadmobile.app.FileUtils;
 /**
  *
  * @author varuna
@@ -19,45 +19,31 @@ public class UstadMobileAppController {
      */
     public static String appDataDir = null;
     
+    
+    /**
+     * Find out where we should put the base folder by finding the root folder
+     * with the maximum amount of space (this should be the memory card generally)
+     */
     public static String getAppDataDir(){
-        String baseFolder = System.getProperty("fileconn.dir.photos") + "umobiledata";
-        try {
+        DeviceRoots bestRoot = FileUtils.getBestRoot();
+        if (bestRoot==null){
+            return null;
+        }
+        String baseFolder = bestRoot.path + "umobiledata";
+        try{
             FileConnection bCon = (FileConnection)Connector.open(baseFolder);
-            if(!bCon.isDirectory()) {
+            if (!bCon.isDirectory()){
                 bCon.mkdir();
-                bCon.close();
-                return("Created Directory");
             }
             bCon.close();
             appDataDir = baseFolder;
-            String appDataURI = appDataDir;
-            String settingsDataURI = appDataURI +"/test-settings.xml";
-            FileConnection fCon = (FileConnection)Connector.open(settingsDataURI,
-                Connector.READ);
-            InputStream is = null;
-            String str = null;
-            if(fCon.exists()) 
-                {
-                    int size = (int)fCon.fileSize();
-                    is= fCon.openInputStream();
-                    byte bytes[] = new byte[size];
-                    is.read(bytes, 0, size);
-                    str = new String(bytes, 0, size);
-                    String returnStr = (String) settingsDataURI.toString() + " File exists";
-                    return (returnStr);
-                }else{
-                    String returnStr = (String) settingsDataURI.toString() + " File does NOT exists";
-                    return (returnStr);
-            }
-            //return baseFolder;//all OK
-        }catch(Exception e3) {
-            e3.printStackTrace();
+            return appDataDir;
+        }catch (Exception ce){
+            return null;
         }
-        return ("Fail2?");
-        //return (baseFolder);
     }
-           
-    /**
+
+     /**
      * Find out where we should put the base folder by finding the root folder
      * with the maximum amount of space (this should be the memory card generally)
      */
@@ -73,7 +59,6 @@ public class UstadMobileAppController {
             appDataDir = baseFolder;
             return baseFolder;//all OK
         }catch(Exception e3) {
-            e3.printStackTrace();
         }
         return null;
     }
@@ -81,5 +66,5 @@ public class UstadMobileAppController {
     public final static String getBaseDir() {
         return appDataDir;
     }
-    
+   
 }
