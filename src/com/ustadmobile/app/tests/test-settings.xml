@@ -5,7 +5,7 @@
     <password>secret</password>
     <opdsxml>test.opds</opdsxml>
     <opfxml>test.opf</opfxml>
-    <testposturl>http://54.77.18.106:8621/</testposturl>
+    <testposturl>http://devserver.ustadmobile.com:8621/</testposturl>
     <device>apple</device>
 </settings>
 <!--

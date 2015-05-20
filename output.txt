@@ -1,0 +1,1764 @@
+Buildfile: /home/varuna/NetBeansProjects/UstadMobile/UstadMobileMicroTest/antenna-build.xml
+     [echo] wtk.home Set to /opt/WTK2.5.2
+     [echo] Signing this......
+
+preprocess:
+[wtkpreprocess] **************************************************************
+[wtkpreprocess] * Antenna 1.2.1 initialized for project "UstadMobileMicro"   *
+[wtkpreprocess] * Using "Sun Wireless Toolkit 2.5" (CLDC-1.1; MIDP-2.1)      *
+[wtkpreprocess] **************************************************************
+[wtkpreprocess] Devices: /home/varuna/NetBeansProjects/UstadMobile/UstadMobileMicroTest/lib/capabilities.xml not found
+[wtkpreprocess] Devices: /home/varuna/NetBeansProjects/UstadMobile/UstadMobileMicroTest/./capabilities.xml not found
+[wtkpreprocess] Devices: loading capabilities.xml from classpath
+[wtkpreprocess] Devices: /home/varuna/NetBeansProjects/UstadMobile/UstadMobileMicroTest/lib/groups.xml not found
+[wtkpreprocess] Devices: /home/varuna/NetBeansProjects/UstadMobile/UstadMobileMicroTest/./groups.xml not found
+[wtkpreprocess] Devices: loading groups.xml from classpath
+[wtkpreprocess] Devices: /home/varuna/NetBeansProjects/UstadMobile/UstadMobileMicroTest/lib/devices.xml not found
+[wtkpreprocess] Devices: /home/varuna/NetBeansProjects/UstadMobile/UstadMobileMicroTest/./devices.xml not found
+[wtkpreprocess] Devices: loading devices.xml from classpath
+[wtkpreprocess] Devices: /home/varuna/NetBeansProjects/UstadMobile/UstadMobileMicroTest/lib/custom-devices.xml not found
+[wtkpreprocess] Devices: /home/varuna/NetBeansProjects/UstadMobile/UstadMobileMicroTest/./custom-devices.xml not found
+[wtkpreprocess] Devices: loading custom-devices.xml from classpath
+Warning: unknown device "Antenna"
+Symbols: ANTENNA=true
+CRAZYDEBUG=true
+DEBUGLOG=true
+ERRORLOGTHRESHOLD=0
+MEDIAENABLED=true
+SERVER=svr2.ustadmobile.com:8001
+[wtkpreprocess] Preprocessing 19 file(s) at /home/varuna/NetBeansProjects/UstadMobile/UstadMobileMicroTest/src
+(-)/*
+(-) * To change this template, choose Tools | Templates
+(-) * and open the template in the editor.
+(-) */
+(-)package com.ustadmobile.app;
+(-)
+(-)/**
+(-) *
+(-) * @author varuna
+(-) */
+(-)public class DeviceRoots {
+(-)    
+(-)    public String path;
+(-)    public long availableSize;
+(-)    public String name;
+(-)    
+(-)    public DeviceRoots(){
+(-)        
+(-)    }
+(-)    
+(-)}
+[wtkpreprocess] com/ustadmobile/app/DeviceRoots.java ... modified
+(-)/*
+(-)Code taken from Research In Motion's Facebook SDK : FileUtils.java
+(-)*/
+(-)
+(-)/*
+(-)The reason why we want to generate according to the roots is because, 
+(-)fileconn.dir.photos is not everywhere. 
+(-)Instead we have to get the phone memory root and save and search for test 
+(-)settings over there. 
+(-)Also not every phone will have an SD card. 
+(-)
+(-)So as per looking at J2ME so far:
+(-)Assume no SD card. 
+(-)Assume no Photos dir: fileconn.dir.photos
+(-)Assume saving to Phone Memory is not always allowed.
+(-)
+(-)try 1:  Root
+(-)try 2: Photos
+(-)try 3: Images
+(-)
+(-)*/
+(-)
+(-)package com.ustadmobile.app;
+(-)import java.io.IOException;
+(-)import java.io.InputStream;
+(-)import java.util.Enumeration;
+(-)import java.util.Vector;
+(-)import javax.microedition.io.Connector;
+(-)import javax.microedition.io.file.FileConnection;
+(-)import javax.microedition.io.file.FileSystemRegistry;
+(-)
+(-)
+(-)public class FileUtils {
+(-)    protected static final String FILE_PREFIX = "file:///";
+(-)    private static final String SDCARD_STRING = "SDCard";
+(-)
+(-)    /*
+(-)    * Creates the File, Dir.
+(-)    *fileName should start with "file:///"
+(-)    *
+(-)    */
+(-)    public static boolean createRecursively(String fileName, int mode, 
+(-)        boolean isDir) {
+(-)
+(-)        boolean created = false;
+(-)        boolean parentCreated = false;
+(-)
+(-)        if ((fileName == null) || fileName.equals("") || 
+(-)            !fileName.trim().startsWith(FILE_PREFIX)) {
+(-)            // do nothing
+(-)        } else {
+(-)
+(-)            fileName = fileName.trim();
+(-)
+(-)            if (isRoot(fileName)) {
+(-)                created = true;
+(-)            } else {
+(-)                parentCreated = createRecursively(
+(-)                        parentOf(fileName), mode, true);
+(-)                if (parentCreated) {
+(-)                        created = createFileOrDir(fileName, 
+(-)                                mode, isDir);
+(-)                }
+(-)            }
+(-)
+(-)        }
+(-)
+(-)        return created;
+(-)
+(-)    }
+(-)    
+(-)    public static DeviceRoots getFirstRoot(){
+(-)        DeviceRoots bestRoot = new DeviceRoots();
+(-)        bestRoot = null;
+(-)        try{
+(-)            DeviceRoots[] deviceRoots = getAllRoots();
+(-)            if (deviceRoots != null) {
+(-)                bestRoot = deviceRoots[0];
+(-)                return bestRoot;
+(-)            }
+(-)        }catch(Exception e){
+(-)            return null;
+(-)        }
+(-)        return null;
+(-)    }
+(-)    
+(-)    public static DeviceRoots getBestRoot(){
+(-)        DeviceRoots bestRoot = new DeviceRoots();
+(-)        bestRoot = null;
+(-)        DeviceRoots[] deviceRoots = getAllRoots();
+(-)        long startSize = 0;
+(-)        for (int i = 0; i<deviceRoots.length; i++){
+(-)            if (deviceRoots[i].availableSize > startSize){
+(-)                bestRoot = deviceRoots[i];
+(-)                startSize = deviceRoots[i].availableSize;
+(-)            }
+(-)        }
+(-)        if(bestRoot != null){
+(-)            return bestRoot;
+(-)        }
+(-)        return null;
+(-)    }
+(-)
+(-)    public static DeviceRoots[] getAllRoots(){
+(-)        Enumeration enu = null;
+(-)        
+(-)        try{
+(-)            enu = FileSystemRegistry.listRoots();
+(-)            Vector roots = new Vector();
+(-)            DeviceRoots root = new DeviceRoots();
+(-)            while (enu.hasMoreElements()){
+(-)                root = new DeviceRoots();
+(-)                String rootElement = (String)enu.nextElement();
+(-)                rootElement = rootElement.trim();
+(-)                String rootName = rootElement.substring(0, 
+(-)                        rootElement.length() - 1);
+(-)                root.name = rootName;
+(-)                if (SDCARD_STRING.equals(rootName)){
+(-)                        System.out.println("SDCARD found!");
+(-)                    }
+(-)                String baseFolder = FILE_PREFIX + rootElement;
+(-)                root.path = baseFolder;
+(-)                try{
+(-)                    FileConnection fCon = (FileConnection)Connector.open(
+(-)                            baseFolder, Connector.READ_WRITE);
+(-)                    try{
+(-)                        long rootSize = fCon.availableSize();
+(-)                        root.availableSize = rootSize;
+(-)                    }catch (Exception rs){
+(-)                        rs.printStackTrace();
+(-)                        System.out.println("Unable to "
+(-)                                + "calculate root size for root: " + baseFolder);
+(-)                    }
+(-)                    
+(-)                    //return("Able to 
+(-)                    //access this folder amd READ amd WRITE to it. ");
+(-)                    String umFolder = baseFolder + "/testfolder";
+(-)                    roots.addElement(root);
+(-)                    fCon.close();
+(-)  
+(-)                }catch (Exception b){
+(-)                    b.printStackTrace();
+(-)                    System.out.println("Unable to open: " + baseFolder);
+(-)                }
+(-)            }
+(-)            DeviceRoots deviceRoots[] = new DeviceRoots[roots.size()];
+(-)            roots.copyInto(deviceRoots);
+(-)            return deviceRoots;
+(-)            
+(-)            //return ("Unable to find roots");
+(-)        }catch (Exception lre){
+(-)            lre.printStackTrace();
+(-)            System.out.println("listRoots exception");
+(-)        }
+(-)        return null;
+(-)        
+(-)    }
+(-)
+(-)    public static boolean createFileInRoot(String fileName){
+(-)            boolean created  = false;
+(-)            if ((fileName == null) || fileName.equals("") ){
+(-)                    // do nothing
+(-)            } else {
+(-)
+(-)                    try {
+(-)                  FileConnection filecon = (FileConnection)
+(-)                          Connector.open(fileName);
+(-)                  // Always check whether the file or directory exists.
+(-)                  // Create the file if it doesn't exist.
+(-)                  if(!filecon.exists()) {
+(-)                     filecon.create();
+(-)                  }
+(-)                  filecon.close();
+(-)               } catch(IOException ioe) {
+(-)               }
+(-)
+(-)            }
+(-)            return created;
+(-)    }
+(-)
+(-)    protected static boolean createFileOrDir(String fileName, int mode, 
+(-)            boolean isDir) {
+(-)
+(-)            boolean created = false;
+(-)
+(-)            try {
+(-)                    fileName = fileName.trim();
+(-)
+(-)                    if (isDir && !fileName.endsWith("/")) {
+(-)                            fileName += "/";
+(-)                    }
+(-)
+(-)                    FileConnection fc = (FileConnection) Connector.open(fileName, mode);
+(-)
+(-)                    if (fc.exists()) {
+(-)                            created = true;
+(-)                    } else {
+(-)                            if (isDir) {
+(-)                                    fc.mkdir();
+(-)                            } else {
+(-)                                    fc.create();
+(-)                            }
+(-)                            created = true;
+(-)                    }
+(-)
+(-)            } catch (Throwable t) {
+(-)                    t.printStackTrace();
+(-)            } finally {
+(-)            }
+(-)
+(-)            return created;
+(-)    }
+(-)
+(-)    public static String parentOf(String inStr) {
+(-)            String result = null;
+(-)
+(-)            if ((inStr != null) && !inStr.trim().equals("")) {
+(-)                    inStr = inStr.trim();
+(-)                    int index = inStr.lastIndexOf('/');
+(-)                    if (index != -1) {
+(-)                            result = inStr.substring(0, index);
+(-)                    }
+(-)            }
+(-)
+(-)            return result;
+(-)    }
+(-)
+(-)    public static boolean isRoot(String pFileName) {
+(-)            boolean output = false;
+(-)            Enumeration e = FileSystemRegistry.listRoots();
+(-)            String fileName = pFileName.trim() + "/";
+(-)
+(-)            while (e.hasMoreElements()) {
+(-)                    String thisRoot = (String) e.nextElement();
+(-)                    output = fileName.equals(FILE_PREFIX + thisRoot);
+(-)                    if (output) {
+(-)                            break;
+(-)                    }
+(-)            }
+(-)
+(-)            return output;
+(-)    }
+(-)    
+(-)    public static InputStream getFileBytes(String fileURI) 
+(-)            throws IOException{
+(-)        FileConnection fCon = (FileConnection)Connector.open(fileURI,
+(-)            Connector.READ);
+(-)        InputStream is = fCon.openInputStream();
+(-)        return is;
+(-)    }
+(-)
+(-)
+(-)}
+[wtkpreprocess] com/ustadmobile/app/FileUtils.java ... modified
+(-)/*
+(-) * To change this template, choose Tools | Templates
+(-) * and open the template in the editor.
+(-) */
+(-)package com.ustadmobile.app;
+(-)
+(-)/**
+(-) *
+(-) * @author varuna
+(-) */
+(-)public class UstadJS {
+(-)    
+(-)    public static final String getExtension(String filename) {
+(-)        int dotPos = filename.lastIndexOf('.');
+(-)        return dotPos != -1 ? filename.substring(dotPos + 1) : null;
+(-)    }
+(-)    
+(-)}
+[wtkpreprocess] com/ustadmobile/app/UstadJS.java ... modified
+(-)/*
+(-) * To change this template, choose Tools | Templates
+(-) * and open the template in the editor.
+(-) */
+(-)package com.ustadmobile.app.contentdownload;
+(-)
+(-)import com.ustadmobile.app.opds.UstadJSOPDSEntry;
+(-)import java.util.Vector;
+(-)
+(-)/**
+(-) *
+(-) * @author varuna
+(-) */
+(-)public class ContentDownloadByLink {
+(-)    
+(-)     public void downloadLink(UstadJSOPDSEntry entry, String mimeType){
+(-)         //Validate link
+(-)         //Simplify Course name
+(-)         String courseName = entry.title;
+(-)         String destFolder = "file://localhost/root1/ustadmobileContent/"+courseName;
+(-)         Vector courseLinks = entry.getAcquisitionLinks(mimeType);
+(-)         String link = (String) courseLinks.elementAt(0);
+(-)         
+(-)         
+(-)     }
+(-)    
+(-)}
+[wtkpreprocess] com/ustadmobile/app/contentdownload/ContentDownloadByLink.java ... modified
+(-)/*
+(-) * To change this template, choose Tools | Templates
+(-) * and open the template in the editor.
+(-) */
+(-)package com.ustadmobile.app.controller;
+(-)
+(-)import com.ustadmobile.app.DeviceRoots;
+(-)import javax.microedition.io.Connector;
+(-)import javax.microedition.io.file.FileConnection;
+(-)import com.ustadmobile.app.FileUtils;
+(-)/**
+(-) *
+(-) * @author varuna
+(-) */
+(-)public class UstadMobileAppController {
+(-)    
+(-)    /**
+(-)     * Dir to contain app data (e.g. logs, settings etc)
+(-)     */
+(-)    public static String appDataDir = null;
+(-)    
+(-)    
+(-)    /**
+(-)     * Find out where we should put the base folder by finding the root folder
+(-)     * with the maximum amount of space (this should be the memory card generally)
+(-)     */
+(-)    public static String getAppDataDir(){
+(-)        DeviceRoots bestRoot = FileUtils.getBestRoot();
+(-)        if (bestRoot==null){
+(-)            return null;
+(-)        }
+(-)        String baseFolder = bestRoot.path + "umobiledata";
+(-)        try{
+(-)            FileConnection bCon = (FileConnection)Connector.open(baseFolder);
+(-)            if (!bCon.isDirectory()){
+(-)                bCon.mkdir();
+(-)            }
+(-)            bCon.close();
+(-)            appDataDir = baseFolder;
+(-)            return appDataDir;
+(-)        }catch (Exception ce){
+(-)            return null;
+(-)        }
+(-)    }
+(-)
+(-)     /**
+(-)     * Find out where we should put the base folder by finding the root folder
+(-)     * with the maximum amount of space (this should be the memory card generally)
+(-)     */
+(-)    public static String setupAppDataDir() {
+(-)        String baseFolder = System.getProperty("fileconn.dir.photos") + "umobiledata";
+(-)        
+(-)        try {
+(-)            FileConnection bCon = (FileConnection)Connector.open(baseFolder);
+(-)            if(!bCon.isDirectory()) {
+(-)                bCon.mkdir();
+(-)            }
+(-)            bCon.close();
+(-)            appDataDir = baseFolder;
+(-)            return baseFolder;//all OK
+(-)        }catch(Exception e3) {
+(-)        }
+(-)        return null;
+(-)    }
+(-)    
+(-)    public final static String getBaseDir() {
+(-)        return appDataDir;
+(-)    }
+(-)   
+(-)}
+[wtkpreprocess] com/ustadmobile/app/controller/UstadMobileAppController.java ... modified
+(-)/*
+(-) * To change this template, choose Tools | Templates
+(-) * and open the template in the editor.
+(-) */
+(-)package com.ustadmobile.app.opds;
+(-)
+(-)/**
+(-) *
+(-) * @author varuna
+(-) */
+(-)public class UstadJSOPDSAuthor {
+(-)    public String name;
+(-)    public String uri;
+(-)    
+(-)}
+[wtkpreprocess] com/ustadmobile/app/opds/UstadJSOPDSAuthor.java ... modified
+(-)/*
+(-) * To change this template, choose Tools | Templates
+(-) * and open the template in the editor.
+(-) */
+(-)package com.ustadmobile.app.opds;
+(-)
+(-)import java.util.Vector;
+(-)
+(-)/**
+(-) *
+(-) * @author varuna
+(-) */
+(-)public class UstadJSOPDSEntry extends UstadJSOPDSItem {
+(-)    public UstadJSOPDSFeed parentFeed;
+(-)    
+(-)    public static int LINK_REL = 0;
+(-)    public static int LINK_MIMETYPE = 1;
+(-)    public static int LINK_HREF = 2;
+(-)    
+(-)                
+(-)    public UstadJSOPDSEntry(UstadJSOPDSFeed parentFeed) {
+(-)        super();
+(-)        this.parentFeed = parentFeed;
+(-)    }
+(-)
+(-)    public Vector getAcquisitionLinks() {
+(-)        return this.getLinks(LINK_ACQUIRE, null, true, false);
+(-)    } 
+(-)    
+(-)    public Vector getAcquisitionLinks(String mimeType){
+(-)        return this.getLinks(LINK_ACQUIRE, mimeType, true, false);
+(-)    }
+(-)    
+(-)    public Vector getNavigationLinks(){
+(-)        return this.getLinks(null, TYPE_ATOMFEED, false, true);
+(-)    }
+(-)    
+(-)    public Vector getThumbnails(){
+(-)        Vector tentries = new Vector();
+(-)        tentries = this.getLinks(LINK_THUMBNAIL, null);
+(-)        if (tentries.size() > 0){
+(-)            return tentries;
+(-)        }
+(-)        Vector ientries = new Vector();
+(-)        ientries = this.getLinks(LINK_IMAGE, null);
+(-)        if (ientries.size() > 0){
+(-)            return ientries;
+(-)        }
+(-)        
+(-)        return null;
+(-)    }
+(-)    
+(-)    public Vector getImages(){
+(-)        Vector ientries = new Vector();
+(-)        ientries = this.getLinks(LINK_IMAGE, null);
+(-)        if (ientries.size() > 0){
+(-)            return ientries;
+(-)        }
+(-)        
+(-)        Vector tentries = new Vector();
+(-)        tentries = this.getLinks(LINK_THUMBNAIL, null);
+(-)        if (tentries.size() > 0){
+(-)            return tentries;
+(-)        }
+(-)        
+(-)        return null;
+(-)    }
+(-)
+(-)}
+[wtkpreprocess] com/ustadmobile/app/opds/UstadJSOPDSEntry.java ... modified
+(-)/*
+(-) * To change this template, choose Tools | Templates
+(-) * and open the template in the editor.
+(-) */
+(-)package com.ustadmobile.app.opds;
+(-)import java.io.IOException;
+(-)import java.util.Vector;
+(-)import org.xmlpull.v1.XmlPullParser;
+(-)import org.xmlpull.v1.XmlPullParserException;
+(-)
+(-)/**
+(-) *
+(-) * @author varuna
+(-) */
+(-)public class UstadJSOPDSFeed extends UstadJSOPDSItem{
+(-)    
+(-)    public UstadJSOPDSEntry[] entries;
+(-)    
+(-)    public UstadJSOPDSFeed() {
+(-)        
+(-)    }
+(-)    
+(-)    public static UstadJSOPDSFeed loadFromXML(XmlPullParser xpp) throws 
+(-)            XmlPullParserException, IOException{
+(-)        UstadJSOPDSFeed resultFeed = new UstadJSOPDSFeed();
+(-)        
+(-)        int evtType = xpp.getEventType();
+(-)        
+(-)        UstadJSOPDSItem currentItem = resultFeed;
+(-)        Vector entryVector = new Vector();
+(-)        String rel;
+(-)        String mimeType;
+(-)        String href;
+(-)        //cache the content string of an entry in case we dont find summary
+(-)        String content = null;
+(-)        do {
+(-)            
+(-)            if(evtType == XmlPullParser.START_TAG) {
+(-)                if(xpp.getName().equals("entry")) {
+(-)                    currentItem = new UstadJSOPDSEntry(resultFeed);
+(-)                }
+(-)                
+(-)                if(xpp.getName().equals("title")) {                    
+(-)                    currentItem.title = xpp.nextText();
+(-)                }else if(xpp.getName().equals("id")) {
+(-)                    currentItem.id = xpp.nextText();
+(-)                }else if(xpp.getName().equals("link")){
+(-)                    rel = xpp.getAttributeValue(null, "rel");
+(-)                    mimeType = xpp.getAttributeValue(null, "type");
+(-)                    href = xpp.getAttributeValue(null, "href");
+(-)                    currentItem.addLink(rel, mimeType, href);
+(-)                }else if(xpp.getName().equals("updated")){
+(-)                    currentItem.updated = xpp.nextText();
+(-)                }else if(xpp.getName().equals("summary")) {
+(-)                    currentItem.summary = xpp.nextText();
+(-)                }else if(xpp.getName().equals("content")) {
+(-)                    content = xpp.nextText();
+(-)                }else if(xpp.getName().equals("dc:publisher")){ // Fix this
+(-)                    currentItem.publisher = xpp.nextText();
+(-)                }else if(xpp.getName().equals("dcterms:publisher")){
+(-)                    currentItem.publisher = xpp.nextText();
+(-)                }
+(-)                if(xpp.getName().equals("author")){
+(-)                    
+(-)                    UstadJSOPDSAuthor currentAuthor = new UstadJSOPDSAuthor();
+(-)                    do
+(-)                    {
+(-)                        evtType = xpp.next();
+(-)                        
+(-)                        if(xpp.getName().equals("name")){
+(-)                            currentAuthor.name = xpp.nextText();
+(-)                        }else if (xpp.getName().equals("uri")){
+(-)                            currentAuthor.uri = xpp.nextText();
+(-)                        }
+(-)                        if(evtType == XmlPullParser.END_TAG
+(-)                                && xpp.getName().equals("author")){
+(-)                            if (currentItem.authors == null){
+(-)                                currentItem.authors = new Vector();
+(-)                                currentItem.authors.addElement(currentAuthor);
+(-)                            }else{
+(-)                                currentItem.authors.addElement(currentAuthor);
+(-)                            }
+(-)                        }
+(-)                        
+(-)                    }while(evtType != XmlPullParser.END_TAG && 
+(-)                            !xpp.getName().equals("author"));
+(-)                }
+(-)                
+(-)            }else if(evtType == XmlPullParser.END_TAG) {
+(-)                if(xpp.getName().equals("entry")) {
+(-)                    if(currentItem.summary == null && content != null) {
+(-)                        currentItem.summary = content;
+(-)                    }
+(-)                    
+(-)                    entryVector.addElement(currentItem);
+(-)                    currentItem = resultFeed;
+(-)                    content = null;
+(-)                }else if (xpp.getName().equals("author")){
+(-)                    //currentItem.author = currentAuthor;
+(-)                }
+(-)            }
+(-)            
+(-)            evtType = xpp.next();
+(-)        }while(evtType != XmlPullParser.END_DOCUMENT);
+(-)        
+(-)        resultFeed.entries = new UstadJSOPDSEntry[entryVector.size()];
+(-)        entryVector.copyInto(resultFeed.entries);
+(-)        
+(-)        return resultFeed;
+(-)    }
+(-)    
+(-)    public UstadJSOPDSEntry getEntryById (String id) {
+(-)        UstadJSOPDSEntry entry;
+(-)        for (int i=0;i<=this.entries.length; i++){
+(-)            if (this.entries[i].id.equals(id)){
+(-)                entry = this.entries[i];
+(-)                return entry;
+(-)            }
+(-)        }
+(-)        
+(-)        return null;
+(-)    }
+(-)    
+(-)    public UstadJSOPDSEntry[] getEntriesByLinkParams(String linkRel, 
+(-)        String linkType, boolean relByPrefix, boolean mimeTypeByPrefix){
+(-)        Vector matches = new Vector();
+(-)        for (int i=0; i<=this.entries.length; i++){
+(-)            Vector entryResult = this.entries[i].getLinks(linkRel, linkType, 
+(-)                    relByPrefix, mimeTypeByPrefix);
+(-)            for(int j = 0; j < entryResult.size(); j++) {
+(-)                matches.addElement(entryResult.elementAt(j));
+(-)            }
+(-)        }
+(-)        
+(-)        UstadJSOPDSEntry[] matchEntries = new UstadJSOPDSEntry[matches.size()];
+(-)        matches.copyInto(matchEntries);
+(-)        return matchEntries;
+(-)    }
+(-)    
+(-)    public boolean isAcquisitionFeed(){
+(-)        Object[] entries = this.getEntriesByLinkParams(
+(-)                UstadJSOPDSEntry.LINK_ACQUIRE, null, true, false);
+(-)        return (entries.length > 0);
+(-)    }
+(-)    
+(-)
+(-)}
+[wtkpreprocess] com/ustadmobile/app/opds/UstadJSOPDSFeed.java ... modified
+(-)/*
+(-) * To change this template, choose Tools | Templates
+(-) * and open the template in the editor.
+(-) */
+(-)package com.ustadmobile.app.opds;
+(-)
+(-)import java.util.Vector;
+(-)
+(-)/**
+(-) *
+(-) * @author varuna
+(-) */
+(-)public abstract class UstadJSOPDSItem {
+(-)    
+(-)    public String title;
+(-)    
+(-)    public String id;
+(-)    
+(-)    public Vector linkVector;
+(-)    
+(-)    public static int LINK_REL = 0;
+(-)    public static int LINK_MIMETYPE = 1;
+(-)    public static int LINK_HREF = 2;
+(-)    
+(-)    public String updated;
+(-)    
+(-)    public String summary;
+(-)    public Vector authors;    
+(-)    public String publisher;
+(-)    /**
+(-)    * Atom/XML feed mime type constant
+(-)    * 
+(-)    * @type String
+(-)    */
+(-)    public static String TYPE_ATOMFEED = "application/atom+xml";
+(-)    
+(-)    /**
+(-)    * OPDS constant for the standard acquisition link
+(-)    * @type String
+(-)    */
+(-)    public static String LINK_ACQUIRE = "http://opds-spec.org/acquisition";
+(-)
+(-)    /**
+(-)    * OPDS constant for open access acquisition link
+(-)    * @type String
+(-)    */
+(-)    public static String LINK_ACQUIRE_OPENACCESS = 
+(-)           "http://opds-spec.org/acquisition/open-access";
+(-)
+(-)    /**
+(-)    * Type to be used for a catalog link of an acquisition feed as per OPDS spec
+(-)    * 
+(-)    * @type String
+(-)    */
+(-)    public static String TYPE_ACQUISITIONFEED = 
+(-)           "application/atom+xml;profile=opds-catalog;kind=acquisition";
+(-)
+(-)
+(-)    /**
+(-)    * Type to be used for a navigation feed as per OPDS spec
+(-)    * 
+(-)    * @type String
+(-)    */
+(-)    public static String TYPE_NAVIGATIONFEED =
+(-)          "application/atom+xml;profile=opds-catalog;kind=navigation";
+(-)
+(-)    /**
+(-)    * The type of link used for an epub file itself
+(-)    * 
+(-)    * @type String
+(-)    */
+(-)    public static String TYPE_EPUBCONTAINER = "application/epub+zip";
+(-)
+(-)   /**
+(-)    * OPDS constant for the cover image / artwork for an item
+(-)    * @type Strnig
+(-)    */
+(-)   public static String LINK_IMAGE = "http://opds-spec.org/image";
+(-)
+(-)   /**
+(-)    * OPDS constnat for the thumbnail
+(-)    * @type String
+(-)    */
+(-)    public static String LINK_THUMBNAIL = "http://opds-spec.org/image/thumbnail";
+(-)
+(-)    public UstadJSOPDSItem() {
+(-)        this.linkVector = new Vector();
+(-)    }
+(-)    
+(-)    public void addLink(String rel, String mimeType, String href) {
+(-)        String[] s = new String[]{rel, mimeType, href};
+(-)        linkVector.addElement(s);        
+(-)    }
+(-)    
+(-)    public String[] getLink(int index) {
+(-)        return (String[])linkVector.elementAt(index);
+(-)    }
+(-)     
+(-)    public Vector getLinks(String linkRel, String mimeType) {
+(-)        return this.getLinks(linkRel, mimeType, false, false);
+(-)    }
+(-)    
+(-)    public Vector getLinks(String linkRel, String mimeType, boolean relByPrefix,
+(-)            boolean mimeTypeByPrefix) {
+(-)        Vector result = new Vector();
+(-)        boolean matchRel = false;
+(-)        boolean matchType = false;
+(-)        
+(-)        for(int i = 0; i < linkVector.size(); i++) {
+(-)            matchRel = true;
+(-)            matchType = true;
+(-)            
+(-)            String[] thisLink = (String[])linkVector.elementAt(i);
+(-)            if(linkRel != null && thisLink[LINK_REL] != null) {
+(-)                matchRel = relByPrefix ? 
+(-)                    thisLink[LINK_REL].startsWith(linkRel) :
+(-)                        thisLink[LINK_REL].equals(linkRel);
+(-)            }else if(linkRel != null && thisLink[LINK_REL] == null) {
+(-)                matchRel = false;
+(-)            }
+(-)            
+(-)            if(mimeType != null && thisLink[LINK_MIMETYPE] != null) {
+(-)                matchType = mimeTypeByPrefix ? 
+(-)                        thisLink[LINK_MIMETYPE].startsWith(mimeType) :
+(-)                    thisLink[LINK_MIMETYPE].equals(mimeType);
+(-)            }else if(mimeType != null && thisLink[LINK_MIMETYPE] == null) {
+(-)                matchType = false;
+(-)            }
+(-)            
+(-)            if(matchRel && matchType) {
+(-)                result.addElement(thisLink);
+(-)            }
+(-)        }
+(-)        
+(-)        return result;
+(-)    }
+(-)    
+(-)    public Vector getNavigationLinks(){
+(-)        return this.getLinks(null, TYPE_ATOMFEED, false, true);
+(-)    }
+(-)
+(-)}
+[wtkpreprocess] com/ustadmobile/app/opds/UstadJSOPDSItem.java ... modified
+(-)/*
+(-) * To change this template, choose Tools | Templates
+(-) * and open the template in the editor.
+(-) */
+(-)package com.ustadmobile.app.opf;
+(-)
+(-)import com.ustadmobile.app.UstadJS;
+(-)import com.ustadmobile.app.opds.UstadJSOPDSItem;
+(-)import java.io.IOException;
+(-)import java.util.Hashtable;
+(-)import java.util.Vector;
+(-)import org.xmlpull.v1.XmlPullParser;
+(-)import org.xmlpull.v1.XmlPullParserException;
+(-)
+(-)/**
+(-) *
+(-) * @author varuna
+(-) */
+(-)public class UstadJSOPF {
+(-)    
+(-)    private Hashtable mimeExceptions;
+(-)    //defaultMimeTypes.put("","");
+(-)    
+(-)    static Hashtable defaultMimeTypes;
+(-)    public static String DEFAULT_MIMETYPE = "application/octet-stream";
+(-)    
+(-)    public UstadJSOPFItem[] spine;
+(-)    
+(-)    static {
+(-)        setupDefaultMimeTypes();
+(-)    }
+(-)    
+(-)    
+(-)    private static void setupDefaultMimeTypes() {
+(-)        defaultMimeTypes = new Hashtable();
+(-)        defaultMimeTypes.put("gif", "image/gif");
+(-)        defaultMimeTypes.put("js", "application/javascript");
+(-)        defaultMimeTypes.put("jpg","image/jpg");
+(-)        defaultMimeTypes.put("jpeg", "image/jpg");
+(-)        defaultMimeTypes.put("png", "image/png");
+(-)        defaultMimeTypes.put("svg","image/svg+xml");
+(-)        defaultMimeTypes.put("css","text/css");
+(-)        defaultMimeTypes.put("html","text/html");
+(-)        defaultMimeTypes.put("xml","application/xml");
+(-)        defaultMimeTypes.put("xhtml","application/xhtml+xml");
+(-)        defaultMimeTypes.put("mp4","video/mp4");
+(-)        defaultMimeTypes.put("3gp","video/3gpp");
+(-)        defaultMimeTypes.put("avi","video/x-msvideo");
+(-)        defaultMimeTypes.put("wmv","video/x-ms-wmv");
+(-)        defaultMimeTypes.put("bmp", "image/bmp");
+(-)        defaultMimeTypes.put("tiff","image/tiff");
+(-)        defaultMimeTypes.put("woff","application/x-font-woff");
+(-)        defaultMimeTypes.put("mp3","audio/mpeg");
+(-)        defaultMimeTypes.put("wav","audio/wav");
+(-)        defaultMimeTypes.put("mid", "audio/midi");
+(-)        defaultMimeTypes.put("midi","audio/midi");
+(-)        defaultMimeTypes.put("aac","audio/x-aac");
+(-)        defaultMimeTypes.put("mj2","video/mj2");
+(-)    }
+(-)    
+(-)    
+(-)    public UstadJSOPF() {
+(-)        mimeExceptions = new Hashtable();
+(-)    }
+(-)    /*
+(-)     * xpp: Parser of the OPF
+(-)     */
+(-)    public static UstadJSOPF loadFromOPF(XmlPullParser xpp) throws XmlPullParserException, IOException {
+(-)        UstadJSOPF result = new UstadJSOPF();
+(-)        
+(-)        
+(-)        String extension = null;
+(-)        String defMimeType = null;
+(-)        int evtType = xpp.getEventType();
+(-)        String filename=null;
+(-)        String itemMime=null;
+(-)        String id=null;
+(-)        String properties=null;
+(-)        String idref=null;
+(-)        Hashtable allItems = new Hashtable();
+(-)        Vector spineItems = new Vector();        
+(-)
+(-)        do
+(-)        {
+(-)            filename=null;
+(-)            itemMime=null;
+(-)            id=null;
+(-)            properties=null;
+(-)            defMimeType = null;
+(-)            extension=null;
+(-)            idref=null;
+(-)            
+(-)            if(evtType == XmlPullParser.START_TAG){
+(-)                if(xpp.getName().equals("manifest")){
+(-)                    System.out.println("In Manifest: " + xpp.getName());
+(-)                }else if(xpp.getName() != null && xpp.getName().equals("item")){
+(-)                    
+(-)                    filename=xpp.getAttributeValue(null, "href");
+(-)                    System.out.println("item: " + filename);
+(-)                    itemMime=xpp.getAttributeValue(null, "media-type");
+(-)                    id = xpp.getAttributeValue(null, "id");
+(-)                    properties = xpp.getAttributeValue(null, "properties");
+(-)
+(-)                    extension=UstadJS.getExtension(filename);
+(-)                    if(extension != null && defaultMimeTypes.containsKey(extension)){
+(-)                        defMimeType = (String)defaultMimeTypes.get(extension);
+(-)                    }
+(-)                    if(extension == null || defMimeType == null ||
+(-)                            !itemMime.equals(defMimeType)){
+(-)                        result.mimeExceptions.put(filename, itemMime);
+(-)                    }
+(-)                    UstadJSOPFItem item2 = new UstadJSOPFItem();
+(-)                    item2.href = filename;
+(-)                    item2.mimeType = itemMime;
+(-)                    item2.properties = properties;                        
+(-)
+(-)                    allItems.put(id, item2);
+(-)
+(-)                }else if(xpp.getName() != null && xpp.getName().equals("itemref")){
+(-)                    //for each itemRef in spine
+(-)                    //if(xpp.getName().equals("itemref")){
+(-)                    idref=xpp.getAttributeValue(null, "idref");
+(-)                    Object spineItem = allItems.get(idref);
+(-)                    if(spineItem == null){
+(-)                        throw new RuntimeException("Invalid OPF: item not found: #" + idref);
+(-)                    }
+(-)                        
+(-)                    spineItems.addElement(allItems.get(idref));
+(-)                    
+(-)                }
+(-)                    
+(-)                
+(-)            }else if(evtType == XmlPullParser.END_TAG){
+(-)                if(xpp.getName().equals("manifest")){
+(-)                    System.out.println("End of manifest.");
+(-)                }else if(xpp.getName().equals("spine")){
+(-)                    result.spine = new UstadJSOPFItem[spineItems.size()];
+(-)                    spineItems.copyInto(result.spine);
+(-)                    
+(-)                }
+(-)            }else if(evtType == XmlPullParser.TEXT){
+(-)
+(-)            }
+(-)            evtType = xpp.next();
+(-)            
+(-)        }while(evtType != XmlPullParser.END_DOCUMENT);
+(-)        
+(-)        return result;
+(-)    }
+(-)    
+(-)    public String getMimeType(String filename) {
+(-)        if(mimeExceptions.containsKey(filename)) {
+(-)            return (String)mimeExceptions.get(filename);
+(-)        }
+(-)        
+(-)        String extension = filename.substring(filename.lastIndexOf('.'));
+(-)        if(defaultMimeTypes.containsKey(extension)) {
+(-)            return (String)defaultMimeTypes.get(extension);
+(-)        }
+(-)        
+(-)        return DEFAULT_MIMETYPE;
+(-)    }
+(-)    
+(-)}
+[wtkpreprocess] com/ustadmobile/app/opf/UstadJSOPF.java ... modified
+(-)/*
+(-) * To change this template, choose Tools | Templates
+(-) * and open the template in the editor.
+(-) */
+(-)package com.ustadmobile.app.opf;
+(-)
+(-)/**
+(-) *
+(-) * @author varuna
+(-) */
+(-)public class UstadJSOPFItem {
+(-)    public String href;
+(-)    public String mimeType;
+(-)    public String properties;
+(-)    
+(-)    public UstadJSOPFItem(){
+(-)        
+(-)    }
+(-)}
+[wtkpreprocess] com/ustadmobile/app/opf/UstadJSOPFItem.java ... modified
+(-)/*
+(-) * To change this template, choose Tools | Templates
+(-) * and open the template in the editor.
+(-) */
+(-)package com.ustadmobile.app.tests;
+(-)import j2meunit.framework.Test;
+(-)import j2meunit.framework.TestCase;
+(-)import j2meunit.framework.TestSuite;
+(-)
+(-)/**
+(-) *
+(-) * @author varuna
+(-) */
+(-)public class AllTestCases extends TestCase {
+(-)    
+(-)    public AllTestCases(){
+(-)        setName("All Test Caes");
+(-)    }
+(-)
+(-)    public Test suite() {
+(-)        
+(-)        try {
+(-)            TestUtils.getInstance().loadTestSettingsResource();
+(-)            //TestUtils.loadTestSettingsFile();
+(-)            System.out.println("Test Settings gotten!");
+(-)        }catch(Exception e) {
+(-)            e.printStackTrace();
+(-)            System.out.println("Could not load TestSettings.");
+(-)            throw new RuntimeException(e.toString());
+(-)        }
+(-)        
+(-)        System.out.println("Starting Tests..");
+(-)        System.out.println("--Testing : " + TestUtils.testSettings.get("appDataURI"));
+(-)        TestSuite allTestSuite = new TestSuite("AlltestSuites");
+(-)        
+(-)        allTestSuite.addTest(new TestSimple());
+(-)        allTestSuite.addTest(new TestXmlParse());
+(-)        allTestSuite.addTest(new TestOPDSParse());
+(-)        allTestSuite.addTest(new TestOPFParse());
+(-)        return allTestSuite;
+(-)
+(-)    }
+(-)}
+[wtkpreprocess] com/ustadmobile/app/tests/AllTestCases.java ... modified
+(-)/*
+(-) * To change this template, choose Tools | Templates
+(-) * and open the template in the editor.
+(-) */
+(-)package com.ustadmobile.app.tests;
+(-)import com.ustadmobile.app.opds.UstadJSOPDSAuthor;
+(-)import com.ustadmobile.app.opds.UstadJSOPDSEntry;
+(-)import com.ustadmobile.app.opds.UstadJSOPDSFeed;
+(-)import j2meunit.framework.*;
+(-)//import java.io.ByteArrayInputStream;
+(-)import java.io.InputStream;
+(-)import java.util.Vector;
+(-)import org.kxml2.io.KXmlParser;
+(-)
+(-)/**
+(-) *
+(-) * @author varuna
+(-) */
+(-)public class TestOPDSParse extends TestCase{
+(-)
+(-)    public TestOPDSParse() {
+(-)        setName("OPDSParse Test");
+(-)    }
+(-)    
+(-)    protected void runTest() throws Throwable {
+(-)        String fileURI = "/com/ustadmobile/app/tests/" + 
+(-)                TestUtils.testSettings.get("opdsxml").toString();
+(-)        InputStream bais = getClass().getResourceAsStream(
+(-)                fileURI);       
+(-)        /*String fileURI = TestUtils.testSettings.get("appDataURI").toString() + "/" +
+(-)                TestUtils.testSettings.get("opdsxml").toString(); 
+(-)        InputStream bais = TestUtils.getFileBytes(fileURI);*/
+(-)        
+(-)        /*ByteArrayInputStream bais = 
+(-)                TestUtils.getHTTPBytes(TestUtils.testSettings.get("opdsxml").toString());*/
+(-)        KXmlParser parser = new KXmlParser();
+(-)        parser = (KXmlParser) TestUtils.parseXml(bais);
+(-)        UstadJSOPDSFeed feed = UstadJSOPDSFeed.loadFromXML(parser);
+(-)        assertEquals("Test got correct title from feed",
+(-)                "Ustad Mobile Public OPDS Catalog", 
+(-)                feed.title);
+(-)        String[] s = new String[]{"self", 
+(-)                    "application/atom+xml;profile=opds-catalog;kind=navigation",
+(-)                    "/opds/public/"};
+(-)        String[] c = new String[3];
+(-)        Vector link = feed.getLinks("self", "application/atom+xml;profile=opds-catalog;kind=navigation", true, true);
+(-)        c =(String[]) link.firstElement();
+(-)        for (int i=0; i<c.length; i++){
+(-)            assertEquals("Test got correct link from feed ", c[i], s[i]);
+(-)        }
+(-)        assertTrue(feed.updated.startsWith("2015"));
+(-)        UstadJSOPDSEntry firstEntry;
+(-)        firstEntry = feed.entries[0];
+(-)        assertEquals("Entry test okay", firstEntry.title, "Recent Courses");
+(-)        String[] es = new String[]{null, 
+(-)            "application/atom+xml;profile=opds-catalog;kind=navigation", 
+(-)            "/opds/public/recent"};
+(-)        String [] ec = new String[3];
+(-)        Vector elink = firstEntry.getLinks(null, 
+(-)                "application/atom+xml;profile=opds-catalog;kind=navigation", 
+(-)                true, true);
+(-)        ec = (String[]) elink.firstElement();
+(-)        
+(-)        for (int i=0;i<ec.length; i++){
+(-)            assertEquals("Test got correct entry links", es[i], ec[i]);
+(-)        }
+(-)        
+(-)        assertEquals("Get feed by ID test okay", 
+(-)                "Recent Courses", 
+(-)                feed.getEntryById("http://umcloud1.ustadmobile.com/opds/public/recent").title);
+(-)        
+(-)        assertEquals("Get Summary test okay", 
+(-)                "The most recent courses from Ustad Mobile in the last month",
+(-)                firstEntry.summary);
+(-)        
+(-)        UstadJSOPDSAuthor feed1 = (UstadJSOPDSAuthor) feed.authors.elementAt(0);
+(-)        UstadJSOPDSAuthor feed2 = (UstadJSOPDSAuthor) feed.authors.elementAt(1);
+(-)        UstadJSOPDSAuthor entry1 = (UstadJSOPDSAuthor) feed.entries[0].authors.elementAt(0);
+(-)        UstadJSOPDSAuthor entry2 = (UstadJSOPDSAuthor) feed.entries[0].authors.elementAt(1);
+(-)        
+(-)        assertEquals("Got author okay", "OPDS God",
+(-)                feed1.name);
+(-)        assertEquals("Got 2nd author okay", "Ustad Mobile Public",
+(-)                feed2.name);
+(-)        
+(-)        assertEquals("Got 1st entry's 1st author okay", "Mike Dawson",
+(-)                entry1.name);
+(-)        assertEquals("Got 1st entry's 2nd author okay", "Varuna Singh",
+(-)                entry2.name);
+(-)        
+(-)        assertEquals("Got publisher deets", "Ustad Mobile Inc.", 
+(-)                firstEntry.publisher);
+(-)    }
+(-)    
+(-)    
+(-)}
+[wtkpreprocess] com/ustadmobile/app/tests/TestOPDSParse.java ... modified
+(-)/*
+(-) * To change this template, choose Tools | Templates
+(-) * and open the template in the editor.
+(-) */
+(-)package com.ustadmobile.app.tests;
+(-)
+(-)import com.ustadmobile.app.opf.UstadJSOPF;
+(-)import j2meunit.framework.TestCase;
+(-)import java.io.ByteArrayInputStream;
+(-)import java.io.InputStream;
+(-)import org.kxml2.io.KXmlParser;
+(-)/**
+(-) *
+(-) * @author varuna
+(-) */
+(-)public class TestOPFParse extends TestCase{
+(-)    
+(-)    public TestOPFParse(){
+(-)        setName("OPFParse Test");
+(-)    }
+(-)    
+(-)    public void runTest() throws Throwable{
+(-)        
+(-)        /*InputStream bais = TestUtils.getFileBytes(
+(-)                TestUtils.testSettings.get("appDataURI").toString() + "/" +
+(-)                TestUtils.testSettings.get("opfxml").toString());
+(-)        */
+(-)        String fileURI = "/com/ustadmobile/app/tests/" + 
+(-)                TestUtils.testSettings.get("opfxml").toString();
+(-)        InputStream bais = getClass().getResourceAsStream(
+(-)                fileURI); 
+(-)        
+(-)        /*ByteArrayInputStream bais = 
+(-)                TestUtils.getHTTPBytes(
+(-)                    TestUtils.testSettings.get("opfxml").toString());*/
+(-)        KXmlParser parser = new KXmlParser();
+(-)        parser = (KXmlParser) TestUtils.parseXml(bais);
+(-)        UstadJSOPF feed = UstadJSOPF.loadFromOPF(parser);
+(-)        
+(-)        assertEquals("Spine made successfully", 
+(-)                "cover.xhtml", feed.spine[0].href);
+(-)        assertEquals("Mime Exception Stored successfully", 
+(-)                "application/mime+ex", 
+(-)                feed.getMimeType("mime_exception.mex"));
+(-)        assertEquals("Mime Default test ok", 
+(-)                feed.DEFAULT_MIMETYPE, 
+(-)                feed.getMimeType("blahfile.txt"));
+(-)    }
+(-)    
+(-)}
+[wtkpreprocess] com/ustadmobile/app/tests/TestOPFParse.java ... modified
+(-)/*
+(-) * To change this template, choose Tools | Templates
+(-) * and open the template in the editor.
+(-) */
+(-)package com.ustadmobile.app.tests;
+(-)
+(-)import j2meunit.framework.TestCase;
+(-)
+(-)/**
+(-) *
+(-) * @author varuna
+(-) */
+(-)public class TestSimple extends TestCase {
+(-)    public TestSimple(){
+(-)        setName("TestSimple Test");
+(-)    }
+(-)    
+(-)    public void runTest() throws Throwable{
+(-)        assertEquals("Simple Test OK", 2, 1+1);
+(-)        
+(-)    }
+(-)}
+[wtkpreprocess] com/ustadmobile/app/tests/TestSimple.java ... modified
+(-)/*
+(-) * To change this template, choose Tools | Templates
+(-) * and open the template in the editor.
+(-) */
+(-)package com.ustadmobile.app.tests;
+(-)
+(-)import java.io.ByteArrayInputStream;
+(-)import java.io.ByteArrayOutputStream;
+(-)import java.io.IOException;
+(-)import java.io.InputStream;
+(-)import java.util.Hashtable;
+(-)import javax.microedition.io.Connector;
+(-)import javax.microedition.io.HttpConnection;
+(-)import org.kxml2.io.KXmlParser;
+(-)import org.xmlpull.v1.XmlPullParser;
+(-)import org.xmlpull.v1.XmlPullParserException;
+(-)import com.ustadmobile.app.controller.UstadMobileAppController;
+(-)import java.io.OutputStream;
+(-)import java.util.Enumeration;
+(-)import javax.microedition.io.file.FileConnection;
+(-)
+(-)/**
+(-) *
+(-) * @author varuna
+(-) */
+(-)public class TestUtils {
+(-)    
+(-)    public static Hashtable testSettings;
+(-)    
+(-)    private static TestUtils mainInstance;
+(-)    
+(-)    public static TestUtils getInstance() {
+(-)        if(mainInstance == null) {
+(-)            mainInstance = new TestUtils();
+(-)        }
+(-)        
+(-)        return mainInstance;
+(-)    }
+(-)    
+(-)    
+(-)    public void loadTestSettingsResource() throws Exception {
+(-)        InputStream is = getClass().getResourceAsStream(
+(-)                "/com/ustadmobile/app/tests/test-settings.xml");
+(-)        XmlPullParser xpp = parseXml(is);
+(-)        testSettings = new Hashtable();
+(-)        String appDataURI = UstadMobileAppController.getAppDataDir();
+(-)        testSettings.put("appDataURI", appDataURI);
+(-)        int evtType = 0;
+(-)        //skip over root element tag
+(-)        xpp.nextTag();
+(-)        
+(-)        do {
+(-)            evtType = xpp.next();
+(-)            if(evtType == XmlPullParser.START_TAG) {
+(-)                String key = xpp.getName();
+(-)                String value = xpp.nextText();
+(-)                System.out.println(key +":"+value);
+(-)                testSettings.put(key, value);
+(-)            }
+(-)        }while(evtType != XmlPullParser.END_DOCUMENT);
+(-)        
+(-)        is.close();
+(-)    }
+(-)    
+(-)    public static void loadTestSettingsFile() throws Exception{
+(-)        //load from the file
+(-)        String appDataURI = UstadMobileAppController.getAppDataDir();
+(-)        String settingsDataURI = appDataURI +"/test-settings.xml";
+(-)        FileConnection fCon = (FileConnection)Connector.open(settingsDataURI,
+(-)            Connector.READ);
+(-)        InputStream is = fCon.openInputStream();
+(-)        XmlPullParser xpp = parseXml(is);
+(-)        testSettings = new Hashtable();
+(-)        testSettings.put("appDataURI", appDataURI);
+(-)        int evtType = 0;
+(-)        //skip over root element tag
+(-)        xpp.nextTag();
+(-)        
+(-)        do {
+(-)            evtType = xpp.next();
+(-)            if(evtType == XmlPullParser.START_TAG) {
+(-)                String key = xpp.getName();
+(-)                String value = xpp.nextText();
+(-)                testSettings.put(key, value);
+(-)            }
+(-)        }while(evtType != XmlPullParser.END_DOCUMENT);
+(-)        
+(-)        is.close();
+(-)        fCon.close();
+(-)        
+(-)    }
+(-)    
+(-)    
+(-)    public static ByteArrayInputStream getHTTPBytes(String url) throws IOException{
+(-)        HttpConnection c = null;
+(-)        InputStream is = null;
+(-)        ByteArrayOutputStream bout = new ByteArrayOutputStream();
+(-)        c = (HttpConnection) Connector.open(
+(-)                url, Connector.READ, true);
+(-)        c.setRequestMethod(HttpConnection.GET); //Get method
+(-)        
+(-)        
+(-)        if (c.getResponseCode() != HttpConnection.HTTP_OK) {
+(-)            throw new IOException("Request to " + url + " is not HTTP 200 OK");
+(-)        }
+(-)
+(-)        is = c.openInputStream();
+(-)        byte[] buf = new byte[1024];
+(-)        int bytesRead = -1;
+(-)        while ((bytesRead = is.read(buf)) != -1) {
+(-)            bout.write(buf, 0, bytesRead);
+(-)        }
+(-)        is.close();
+(-)        is = null;
+(-)
+(-)        ByteArrayInputStream bais = new ByteArrayInputStream(
+(-)                bout.toByteArray());
+(-)
+(-)        bout.close();
+(-)        return bais;
+(-)    }
+(-)    
+(-)    public static XmlPullParser parseXml(InputStream is) throws 
+(-)            XmlPullParserException, IOException{
+(-)        KXmlParser parser = new KXmlParser();
+(-)        parser.setInput(is, "utf-8");
+(-)        return parser;
+(-)    }
+(-)    
+(-)    /***  After setup, attributes of the HttpConnection object can be retrieved 
+(-)     * using various get methods.
+(-)    ***/
+(-)    public static void getConnectionInformation(HttpConnection hc) {
+(-)
+(-)        System.out.println("Request Method for this connection is " + 
+(-)                hc.getRequestMethod());
+(-)        System.out.println("URL in this connection is " + hc.getURL());
+(-)        System.out.println("Protocol for this connection is " +
+(-)                hc.getProtocol()); // It better be HTTP:)
+(-)        System.out.println("This object is connected to " + hc.getHost() + 
+(-)                " host");
+(-)        System.out.println("HTTP Port in use is " + hc.getPort());
+(-)        System.out.println("Query parameter in this request are  " +
+(-)                hc.getQuery());
+(-)
+(-)    }
+(-)    
+(-)    public static InputStream getFileBytes(String fileURI) 
+(-)            throws IOException{
+(-)        FileConnection fCon = (FileConnection)Connector.open(fileURI,
+(-)            Connector.READ);
+(-)        InputStream is = fCon.openInputStream();
+(-)        return is;
+(-)    }
+(-)
+(-)    
+(-)    public static String sendPost(String url, Hashtable optionalParameters) 
+(-)            throws IOException {
+(-)        HttpConnection httpConn = null;
+(-)        InputStream is = null;
+(-)        OutputStream os = null;
+(-)        StringBuffer sb = new StringBuffer();
+(-)        
+(-)        if(url == null){ //Testing..
+(-)            url = "http://54.77.18.106:8621/";
+(-)            
+(-)        }
+(-)
+(-)        try {
+(-)            
+(-)            // Open an HTTP Connection object
+(-)            httpConn = (HttpConnection)Connector.open(url);
+(-)            // Setup HTTP Request to POST
+(-)            httpConn.setRequestMethod(HttpConnection.POST);
+(-)
+(-)            httpConn.setRequestProperty("User-Agent",
+(-)              "Profile/MIDP-1.0 Confirguration/CLDC-1.0");
+(-)            httpConn.setRequestProperty("Accept_Language","en-US");
+(-)            //Content-Type is must to pass parameters in POST Request
+(-)            httpConn.setRequestProperty("Content-Type", 
+(-)                    "application/x-www-form-urlencoded");
+(-)            
+(-)            String params = null;
+(-)            Enumeration keys = optionalParameters.keys();
+(-)            String key, value;
+(-)            boolean firstAmp = true;
+(-)            while(keys.hasMoreElements()) {
+(-)                    key = keys.nextElement().toString();
+(-)                    value = optionalParameters.get(key).toString();
+(-)                    if (firstAmp){
+(-)                        params = key + "=" + value;
+(-)                        firstAmp=false;
+(-)                    }else{
+(-)                        params = params + "&"+ key + "=" + value;
+(-)                    }
+(-)            }
+(-)            
+(-)            //Content-Length to be set
+(-)            httpConn.setRequestProperty("Content-length", 
+(-)                    String.valueOf(params.getBytes().length));
+(-)            
+(-)            // This function retrieves the information of this connection
+(-)            getConnectionInformation(httpConn);
+(-)
+(-)            os = httpConn.openOutputStream();
+(-)
+(-)            os.write(params.getBytes());
+(-)
+(-)            /**Caution: os.flush() is controversial. It may create unexpected 
+(-)                behavior on certain mobile devices. 
+(-)                * Try it out for your mobile device **/
+(-)            
+(-)
+(-)            //os.flush();
+(-)            //os.close();
+(-)
+(-)            // Read Response from the Server
+(-)
+(-)            int response_code=httpConn.getResponseCode();  
+(-)            if(response_code==HttpConnection.HTTP_OK){  
+(-)                sb.append("Success");
+(-)            }  
+(-)
+(-)        } catch(IOException e){  
+(-)            sb.append("Network Problem : " + e.getMessage()); 
+(-)        }finally{
+(-)            if(is!=null){  
+(-)                try {  
+(-)                    is.close();  
+(-)                } catch (IOException ex) {  
+(-)                    ex.printStackTrace();  
+(-)                }  
+(-)            }  
+(-)            if(os!=null){  
+(-)                try {  
+(-)                    os.close();  
+(-)                } catch (IOException ex) {  
+(-)                    ex.printStackTrace();  
+(-)                }  
+(-)            }  
+(-)        }
+(-)        return sb.toString();
+(-)
+(-)    }
+(-)}
+[wtkpreprocess] com/ustadmobile/app/tests/TestUtils.java ... modified
+(-)/*
+(-) * To change this template, choose Tools | Templates
+(-) * and open the template in the editor.
+(-) */
+(-)package com.ustadmobile.app.tests;
+(-)
+(-)import j2meunit.framework.TestCase;
+(-)
+(-)/**
+(-) *
+(-) * @author varuna
+(-) */
+(-)public class TestXmlParse extends TestCase {
+(-)    
+(-)    public TestXmlParse(){
+(-)        setName("Testing XML Parse");
+(-)    }
+(-)    
+(-)    public void runTest() throws Throwable{
+(-)    
+(-)        if (TestUtils.testSettings.get("appDataURI").toString() != null ){
+(-)            assertTrue("Hashtable get appDataURI", true);
+(-)        }
+(-)        
+(-)        assertEquals("Hashtable XML Parse test-settings.xml", "test.opds",
+(-)                TestUtils.getInstance().testSettings.get("opdsxml"));
+(-)        assertEquals("Hashtable XML Parse test-settings.xml OPF", "test.opf",
+(-)                TestUtils.getInstance().testSettings.get("opfxml"));
+(-)        assertEquals("Hashtable XML Parse test-settings.xml username", "mike", 
+(-)                TestUtils.getInstance().testSettings.get("username"));
+(-)        assertEquals("Hashtable XML Parse test-settings.xml password", "secret",
+(-)                TestUtils.getInstance().testSettings.get("password"));
+(-)        
+(-)        
+(-)        
+(-)    }
+(-)    
+(-)}
+[wtkpreprocess] com/ustadmobile/app/tests/TestXmlParse.java ... modified
+(-)/*
+(-) * To change this template, choose Tools | Templates
+(-) * and open the template in the editor.
+(-) */
+(-)package com.ustadmobile.app.tincanxml;
+(-)
+(-)/**
+(-) *
+(-) * @author varuna
+(-) */
+(-)public class UstadJSTinCanXml {
+(-)    
+(-)    public String launchActivity;
+(-)    public String launchActivityID;
+(-)    public String launchActivityEl;
+(-)}
+[wtkpreprocess] com/ustadmobile/app/tincanxml/UstadJSTinCanXml.java ... modified
+(-)/*
+(-) * To change this template, choose Tools | Templates
+(-) * and open the template in the editor.
+(-) */
+(-)package ustadmobilemicrotest;
+(-)
+(-)//For Exit Command button:
+(-)
+(-)//import com.ustadmobile.app.DeviceRoots;
+(-)//import com.ustadmobile.app.controller.UstadMobileAppController;
+(-)//import com.ustadmobile.app.FileUtils;
+(-)
+(-)import com.ustadmobile.app.tests.AllTestCases;
+(-)import com.ustadmobile.app.tests.TestUtils;
+(-)import java.io.IOException;
+(-)import java.util.Hashtable;
+(-)
+(-)//import javax.microedition.lcdui.Command;
+(-)//import javax.microedition.lcdui.CommandListener;
+(-)
+(-)//To Display on screen
+(-)//import javax.microedition.lcdui.Display;
+(-)//import javax.microedition.lcdui.Gauge;
+(-)//import javax.microedition.lcdui.List;
+(-)//import javax.microedition.lcdui.Displayable;
+(-)
+(-)//TextBox for screen:
+(-)import javax.microedition.lcdui.TextBox;
+(-)//import javax.microedition.midlet.*;
+(-)
+(-)/**
+(-) * @author varuna
+(-) */
+(-)public class Midlet extends j2meunit.midletui.TestRunner {//extends MIDlet {// implements CommandListener {
+(-)
+(-)    private TextBox tbox;
+(-)    //private Command exitCommand;
+(-)    
+(-)    public Midlet() {
+(-)
+(-)        tbox = new TextBox("App Dir", 
+(-)                "Hows it going?", 100, 0 ); 
+(-)        /*
+(-)         * 
+(-)        //Get Best Root Name (max available size)
+(-)        DeviceRoots bestRoot = new DeviceRoots();
+(-)        bestRoot = null;
+(-)        bestRoot = FileUtils.getBestRoot();
+(-)        String bestRootName = null;
+(-)        if (bestRoot != null){
+(-)            bestRootName = bestRoot.name;
+(-)        }
+(-)        //tbox = new TextBox("App Dir", 
+(-)        //        bestRootName, 100, 0 ); 
+(-)        
+(-)        //Get All Roots Names available on the phone. 
+(-)        DeviceRoots[] allRoots = FileUtils.getAllRoots();
+(-)        String allRootsString = "All Roots are";
+(-)        for (int i = 0; i<allRoots.length;i++){
+(-)            allRootsString = allRootsString  + ", " + allRoots[i].name;
+(-)        }
+(-)        tbox = new TextBox("App Dir", 
+(-)                allRootsString, 1000, 0 ); 
+(-)        
+(-)        */
+(-)                
+(-)        /*
+(-)        //Exit Command.
+(-)        exitCommand = new Command("Exit", Command.EXIT, 1);
+(-)        tbox.addCommand(exitCommand);
+(-)        tbox.setCommandListener(this);
+(-)        */
+(-)    }
+(-)    
+(-)    //To Display on Screen
+(-)    /*public void startApp() {
+(-)        Display.getDisplay(this).setCurrent(tbox);
+(-)    }*/
+(-)    
+(-)    //Start the tests:
+(-)    public void startApp(){  
+(-)        //start(new String[] { com.ustadmobile.app.tests.AllTestCases.class.getName() });
+(-)        
+(-)        
+(-)        
+(-)        AllTestCases atc = new AllTestCases() ;
+(-)        int ctc = atc.suite().countTestCases();
+(-)        System.out.println("Number of Tests: " + ctc);
+(-)        start(new String[] {
+(-)                atc.getClass().getName()
+(-)        });
+(-)        
+(-)        while(true){
+(-)                try{
+(-)                    int rc = aResult.runCount();
+(-)                    int ac = aResult.assertionCount();
+(-)                    System.out.println("assertionCount: " + ac + "/" + rc);
+(-)                    
+(-)                    if (rc == ctc){
+(-)                        System.out.println("");
+(-)                        System.out.println("All done?");
+(-)                        int numError = aResult.errorCount();
+(-)                        String numAssert = String.valueOf(aResult.assertionCount());
+(-)                        String numFail = String.valueOf(aResult.failureCount());
+(-)                        boolean result = aResult.wasSuccessful();
+(-)                        System.out.println("Error: " + numError + ", Fail: " + 
+(-)                                numFail + ", Assert: " + numAssert + 
+(-)                                ", Result: " + result);
+(-)                        
+(-)                        
+(-)                        //POST-ing
+(-)                        
+(-)                        Hashtable testResult = new Hashtable();
+(-)                        testResult.put("numPass", numAssert);
+(-)                        testResult.put("numFail", numFail);
+(-)                        testResult.put("logtext", 
+(-)                                "Result");
+(-)                        testResult.put("device", 
+(-)                                TestUtils.testSettings.get("device"));
+(-)                        try {
+(-)                            String postResult = null;
+(-)                            postResult = TestUtils.sendPost(
+(-)                                    TestUtils.testSettings.get("testposturl").toString(), 
+(-)                                    testResult);
+(-)                        } catch (IOException ex) {
+(-)                            ex.printStackTrace();
+(-)                        }
+(-)                        
+(-)                        //Get outta here.
+(-)                        break;
+(-)                    }
+(-)                }catch(Exception e){
+(-)                    System.out.print(".");
+(-)                }
+(-)                    
+(-)        }
+(-)        
+(-)        
+(-)    }
+(-)    
+(-)    /**
+(-)     * Helpful for executing tests from command line / microemulator
+(-)     */
+(-)    public static void main(String[] args){
+(-)        j2meunit.textui.TestRunner.main(new String[] {com.ustadmobile.app.tests.AllTestCases.class.getName()});
+(-)    }
+(-)    
+(-)    public void pauseApp() {
+(-)    }
+(-)    
+(-)    public void destroyApp(boolean unconditional) {
+(-)    }
+(-)    
+(-)     /* Return in this format:
+(-)     * POST:
+(-)     *      var numPass = post['numPass'];
+(-)            var numFail = post['numFail'];
+(-)            var logtext = post['logtext'];
+(-)     */
+(-)    
+(-)    /*
+(-)    //For Exit Command button:
+(-)    public void commandAction(Command c, Displayable d) {
+(-)        if (c == exitCommand) {
+(-)            destroyApp(false);
+(-)            notifyDestroyed();
+(-)        }
+(-)    }*/
+(-)    
+(-)}
+[wtkpreprocess] ustadmobilemicrotest/Midlet.java ... modified
+
+build:
+ [wtkbuild] /home/varuna/NetBeansProjects/UstadMobile/UstadMobileMicroTest/antenna-build.xml:79: warning: 'includeantruntime' was not set, defaulting to build.sysclasspath=last; set to false for repeatable builds
+ [wtkbuild] Compiling 19 source files to /home/varuna/NetBeansProjects/UstadMobile/UstadMobileMicroTest/classes-ANTENNA
+
+jar:
+   [wtkjad] Creating JAD file /home/varuna/NetBeansProjects/UstadMobile/UstadMobileMicroTest/dist-ANTENNA/UstadMobileMicro.jad
+     [echo] looking for proguard in: lib/proguard4.10/lib/proguard.jar
+[wtkpackage] Building jar: /home/varuna/NetBeansProjects/UstadMobile/UstadMobileMicroTest/dist-ANTENNA/UstadMobileMicro.jar
+[wtkpackage] Obfuscating /home/varuna/NetBeansProjects/UstadMobile/UstadMobileMicroTest/dist-ANTENNA/UstadMobileMicro.jar with ProGuard
+[wtkpackage] ProGuard, version 4.10
+[wtkpackage] Reading program jar [/home/varuna/NetBeansProjects/UstadMobile/UstadMobileMicroTest/dist-ANTENNA/UstadMobileMicro.jar]
+[wtkpackage] Reading library jar [/opt/WTK2.5.2/lib/cldcapi11.jar]
+[wtkpackage] Reading library jar [/opt/WTK2.5.2/lib/j2me-ws.jar]
+[wtkpackage] Reading library jar [/opt/WTK2.5.2/lib/j2me-xmlrpc.jar]
+[wtkpackage] Reading library jar [/opt/WTK2.5.2/lib/jsr082.jar]
+[wtkpackage] Reading library jar [/opt/WTK2.5.2/lib/jsr179.jar]
+[wtkpackage] Reading library jar [/opt/WTK2.5.2/lib/jsr180.jar]
+[wtkpackage] Reading library jar [/opt/WTK2.5.2/lib/jsr184.jar]
+[wtkpackage] Reading library jar [/opt/WTK2.5.2/lib/jsr211.jar]
+[wtkpackage] Reading library jar [/opt/WTK2.5.2/lib/jsr226.jar]
+[wtkpackage] Reading library jar [/opt/WTK2.5.2/lib/jsr229.jar]
+[wtkpackage] Reading library jar [/opt/WTK2.5.2/lib/jsr234.jar]
+[wtkpackage] Reading library jar [/opt/WTK2.5.2/lib/jsr238.jar]
+[wtkpackage] Reading library jar [/opt/WTK2.5.2/lib/jsr239.jar]
+[wtkpackage] Reading library jar [/opt/WTK2.5.2/lib/jsr75.jar]
+[wtkpackage] Reading library jar [/opt/WTK2.5.2/lib/midpapi20.jar]
+[wtkpackage] Reading library jar [/opt/WTK2.5.2/lib/mmapi.jar]
+[wtkpackage] Note: duplicate definition of library class [javax.microedition.media.protocol.DataSource]
+[wtkpackage] Note: duplicate definition of library class [javax.microedition.media.MediaException]
+[wtkpackage] Note: duplicate definition of library class [javax.microedition.media.Player]
+[wtkpackage] Note: duplicate definition of library class [javax.microedition.media.Controllable]
+[wtkpackage] Note: duplicate definition of library class [javax.microedition.media.PlayerListener]
+[wtkpackage] Note: duplicate definition of library class [javax.microedition.media.Manager]
+[wtkpackage] Note: duplicate definition of library class [javax.microedition.media.SystemTimeBase]
+[wtkpackage] Note: duplicate definition of library class [javax.microedition.media.Control]
+[wtkpackage] Note: duplicate definition of library class [javax.microedition.media.control.VolumeControl]
+[wtkpackage] Note: duplicate definition of library class [javax.microedition.media.control.ToneControl]
+[wtkpackage] Reading library jar [/opt/WTK2.5.2/lib/satsa-apdu.jar]
+[wtkpackage] Note: duplicate definition of library class [java.lang.UnsupportedOperationException]
+[wtkpackage] Reading library jar [/opt/WTK2.5.2/lib/satsa-crypto.jar]
+[wtkpackage] Reading library jar [/opt/WTK2.5.2/lib/satsa-jcrmi.jar]
+[wtkpackage] Note: duplicate definition of library class [java.rmi.Remote]
+[wtkpackage] Note: duplicate definition of library class [java.rmi.RemoteException]
+[wtkpackage] Note: duplicate definition of library class [com.sun.satsa.acl.ACEntry]
+[wtkpackage] Note: duplicate definition of library class [com.sun.satsa.acl.ACFile]
+[wtkpackage] Note: duplicate definition of library class [com.sun.satsa.acl.ACLFileReader]
+[wtkpackage] Note: duplicate definition of library class [com.sun.satsa.acl.ACLPermissions]
+[wtkpackage] Note: duplicate definition of library class [com.sun.satsa.acl.ACList]
+[wtkpackage] Note: duplicate definition of library class [com.sun.satsa.acl.APDUPermissions]
+[wtkpackage] Note: duplicate definition of library class [com.sun.satsa.acl.AccessControlManager]
+[wtkpackage] Note: duplicate definition of library class [com.sun.satsa.acl.JCRMIPermission]
+[wtkpackage] Note: duplicate definition of library class [com.sun.satsa.acl.JCRMIPermissions]
+[wtkpackage] Note: duplicate definition of library class [com.sun.satsa.acl.PINAttributes]
+[wtkpackage] Note: duplicate definition of library class [com.sun.satsa.acl.PINData]
+[wtkpackage] Note: duplicate definition of library class [com.sun.satsa.acl.PINEntryDialog]
+[wtkpackage] Note: duplicate definition of library class [java.lang.UnsupportedOperationException]
+[wtkpackage] Reading library jar [/opt/WTK2.5.2/lib/satsa-pki.jar]
+[wtkpackage] Note: duplicate definition of library class [com.sun.satsa.acl.ACEntry]
+[wtkpackage] Note: duplicate definition of library class [com.sun.satsa.acl.ACFile]
+[wtkpackage] Note: duplicate definition of library class [com.sun.satsa.acl.ACLFileReader]
+[wtkpackage] Note: duplicate definition of library class [com.sun.satsa.acl.ACLPermissions]
+[wtkpackage] Note: duplicate definition of library class [com.sun.satsa.acl.ACList]
+[wtkpackage] Note: duplicate definition of library class [com.sun.satsa.acl.APDUPermissions]
+[wtkpackage] Note: duplicate definition of library class [com.sun.satsa.acl.AccessControlManager]
+[wtkpackage] Note: duplicate definition of library class [com.sun.satsa.acl.JCRMIPermission]
+[wtkpackage] Note: duplicate definition of library class [com.sun.satsa.acl.JCRMIPermissions]
+[wtkpackage] Note: duplicate definition of library class [com.sun.satsa.acl.PINAttributes]
+[wtkpackage] Note: duplicate definition of library class [com.sun.satsa.acl.PINData]
+[wtkpackage] Note: duplicate definition of library class [com.sun.satsa.acl.PINEntryDialog]
+[wtkpackage] Note: duplicate definition of library class [javax.microedition.securityservice.CMSMessageSignatureServiceException]
+[wtkpackage] Note: duplicate definition of library class [javax.microedition.securityservice.CMSMessageSignatureService]
+[wtkpackage] Reading library jar [/opt/WTK2.5.2/lib/wma20.jar]
+[wtkpackage] Reading library jar [/home/varuna/NetBeansProjects/UstadMobile/UstadMobileMicroTest/lib/proguard4.10/lib/proguard.jar]
+[wtkpackage] Note: there were 40 duplicate class definitions.
+[wtkpackage] Reading library jar [/home/varuna/NetBeansProjects/UstadMobile/UstadMobileMicroTest/lib/microemu-nokiaui.jar]
+[wtkpackage]       (http://proguard.sourceforge.net/manual/troubleshooting.html#duplicateclass)
+[wtkpackage] Note: j2meunit.midletui.TestRunner calls '(j2meunit.framework.TestCase)Class.forName(variable).newInstance()'
+[wtkpackage] Note: there were 1 class casts of dynamically created class instances.
+[wtkpackage]       You might consider explicitly keeping the mentioned classes and/or
+[wtkpackage]       their implementations (using '-keep').
+[wtkpackage]       (http://proguard.sourceforge.net/manual/troubleshooting.html#dynamicalclasscast)
+[wtkpackage] Preparing output jar [/home/varuna/NetBeansProjects/UstadMobile/UstadMobileMicroTest/7e549508.tmp/obfuscated.jar]
+[wtkpackage]   Copying resources from program jar [/home/varuna/NetBeansProjects/UstadMobile/UstadMobileMicroTest/dist-ANTENNA/UstadMobileMicro.jar]
+[wtkpackage] Preverifying /home/varuna/NetBeansProjects/UstadMobile/UstadMobileMicroTest/dist-ANTENNA/UstadMobileMicro.jar
+[wtkpackage] Executable: /opt/WTK2.5.2/bin/preverify
+[wtkpackage] Arguments : -classpath /opt/WTK2.5.2/lib/cldcapi11.jar:/opt/WTK2.5.2/lib/j2me-ws.jar:/opt/WTK2.5.2/lib/j2me-xmlrpc.jar:/opt/WTK2.5.2/lib/jsr082.jar:/opt/WTK2.5.2/lib/jsr179.jar:/opt/WTK2.5.2/lib/jsr180.jar:/opt/WTK2.5.2/lib/jsr184.jar:/opt/WTK2.5.2/lib/jsr211.jar:/opt/WTK2.5.2/lib/jsr226.jar:/opt/WTK2.5.2/lib/jsr229.jar:/opt/WTK2.5.2/lib/jsr234.jar:/opt/WTK2.5.2/lib/jsr238.jar:/opt/WTK2.5.2/lib/jsr239.jar:/opt/WTK2.5.2/lib/jsr75.jar:/opt/WTK2.5.2/lib/midpapi20.jar:/opt/WTK2.5.2/lib/mmapi.jar:/opt/WTK2.5.2/lib/satsa-apdu.jar:/opt/WTK2.5.2/lib/satsa-crypto.jar:/opt/WTK2.5.2/lib/satsa-jcrmi.jar:/opt/WTK2.5.2/lib/satsa-pki.jar:/opt/WTK2.5.2/lib/wma20.jar:/home/varuna/NetBeansProjects/UstadMobile/UstadMobileMicroTest/lib/proguard4.10/lib/proguard.jar:/home/varuna/NetBeansProjects/UstadMobile/UstadMobileMicroTest/lib/microemu-nokiaui.jar -d /home/varuna/NetBeansProjects/UstadMobile/UstadMobileMicroTest/7e549508.tmp -target CLDC1.1 /home/varuna/NetBeansProjects/UstadMobile/UstadMobileMicroTest/dist-ANTENNA/UstadMobileMicro.jar
+[wtkpackage] Updating JAD file /home/varuna/NetBeansProjects/UstadMobile/UstadMobileMicroTest/dist-ANTENNA/UstadMobileMicro.jad
+
+BUILD SUCCESSFUL
+Total time: 10 seconds

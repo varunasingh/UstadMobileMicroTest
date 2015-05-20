@@ -105,6 +105,9 @@ NetBeans.  See README for instructions on building from source.
 
         </wtkjad>
 
+	<copy file="${src.dir}/com/ustadmobile/app/tests/test.opds" tofile="${classes.dir.ANTENNA}/com/ustadmobile/app/tests/test.opds"/>
+        <copy file="${src.dir}/com/ustadmobile/app/tests/test.opf" tofile="${classes.dir.ANTENNA}/com/ustadmobile/app/tests/test.opf"/>
+        <copy file="${src.dir}/com/ustadmobile/app/tests/test-settings.xml" tofile="${classes.dir.ANTENNA}/com/ustadmobile/app/tests/test-settings.xml"/>
 
         <echo message="looking for proguard in: ${wtk.proguard.home}/lib/proguard.jar"/>
         <wtkpackage basedir="${classes.dir.ANTENNA}" 
