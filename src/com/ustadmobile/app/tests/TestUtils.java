@@ -37,7 +37,9 @@ public class TestUtils {
         return mainInstance;
     }
     
-    
+    public static String getPlatform(){
+        return System.getProperty("microedition.platform");
+    }
     public void loadTestSettingsResource() throws Exception {
         InputStream is = getClass().getResourceAsStream(
                 "/com/ustadmobile/app/tests/test-settings.xml");

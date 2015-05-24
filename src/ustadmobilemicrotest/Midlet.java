@@ -19,7 +19,7 @@ import java.util.Hashtable;
 //import javax.microedition.lcdui.CommandListener;
 
 //To Display on screen
-//import javax.microedition.lcdui.Display;
+import javax.microedition.lcdui.Display;
 //import javax.microedition.lcdui.Gauge;
 //import javax.microedition.lcdui.List;
 //import javax.microedition.lcdui.Displayable;
@@ -39,7 +39,9 @@ public class Midlet extends j2meunit.midletui.TestRunner {//extends MIDlet {// i
     public Midlet() {
 
         tbox = new TextBox("App Dir", 
-                "Hows it going?", 100, 0 ); 
+                "Hows it going?", 100, 0 );
+        tbox = new TextBox("microedition.platform", 
+                TestUtils.getPlatform().toString(), 100, 0);
         /*
          * 
         //Get Best Root Name (max available size)
@@ -73,12 +75,12 @@ public class Midlet extends j2meunit.midletui.TestRunner {//extends MIDlet {// i
     }
     
     //To Display on Screen
-    /*public void startApp() {
+    public void startApp() {
         Display.getDisplay(this).setCurrent(tbox);
-    }*/
+    }
     
     //Start the tests:
-    public void startApp(){  
+    public void _startApp(){  
         //start(new String[] { com.ustadmobile.app.tests.AllTestCases.class.getName() });
         
         
@@ -115,8 +117,9 @@ public class Midlet extends j2meunit.midletui.TestRunner {//extends MIDlet {// i
                         testResult.put("numFail", numFail);
                         testResult.put("logtext", 
                                 "Result");
-                        testResult.put("device", 
-                                TestUtils.testSettings.get("device"));
+                        /*testResult.put("device", 
+                                TestUtils.testSettings.get("device"));*/
+                        testResult.put("device", TestUtils.getPlatform().toString());
                         try {
                             String postResult = null;
                             postResult = TestUtils.sendPost(
