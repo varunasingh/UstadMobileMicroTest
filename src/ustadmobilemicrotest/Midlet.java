@@ -75,12 +75,13 @@ public class Midlet extends j2meunit.midletui.TestRunner {//extends MIDlet {// i
     }
     
     //To Display on Screen
+    /*
     public void startApp() {
         Display.getDisplay(this).setCurrent(tbox);
-    }
+    }*/
     
     //Start the tests:
-    public void _startApp(){  
+    public void startApp(){  
         //start(new String[] { com.ustadmobile.app.tests.AllTestCases.class.getName() });
         
         
