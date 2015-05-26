@@ -51,7 +51,9 @@ NetBeans.  See README for instructions on building from source.
         <path id="ustadlibclasspath.ref">
             <fileset dir="${lib.dir}" >
                 <include name="j2meunit.jar" />
-                <include name="kxml2-min-2.3.0.jar" />            
+                <include name="kxml2-min-2.3.0.jar" />
+                <include name="LWUIT-MIDP-IO.jar" />
+                <include name="LWUIT-MIDP.jar" />            
             </fileset>
         </path>
         
@@ -131,7 +133,6 @@ NetBeans.  See README for instructions on building from source.
         <delete dir="${dist.dir.ANTENNA}"/>
     </target>
     
-    <echo message="Signing this......"/>
     <target name="sign" depends="jar">
         <wtksign 
             keystore="${wtk.keystore}"
@@ -152,6 +153,15 @@ NetBeans.  See README for instructions on building from source.
         <mkdir dir="${lib.dir}/downloads"/>
         
         <get dest="${lib.dir}/downloads">
+
+            <!-- LWUIT MIDP IO Package from UstadMobile Jenkins -->
+            <url url="http://devserver.ustadmobile.com:8080/job/LWUIT/lastSuccessfulBuild/artifact/MIDP-binaries/LWUIT-MIDP-IO.jar"/>
+            
+            <!-- LWUIT UI Package from UstadMobile Jenkins -->
+            <url url="http://devserver.ustadmobile.com:8080/job/LWUIT/lastSuccessfulBuild/artifact/MIDP-binaries/LWUIT-MIDP.jar"/>
+
+            <!-- LWUIT original binary for resource builder -->
+            <url url="http://www.ustadmobile.com/build-dep/LWUIT_1_5.zip"/>
             
             <!-- J2MEUnit from UstadMobile.com -->
             <url url="http://www.ustadmobile.com/build-dep/j2meunit.jar"/>
@@ -161,7 +171,6 @@ NetBeans.  See README for instructions on building from source.
             
             <!-- microEmu ANTENNA from UstadMobile.com -->
             <url url="http://www.ustadmobile.com/build-dep/microemu-nokiaui.jar"/>
-            
             
             <!-- ProGuard 4.10 zipped binary from UstadMobile.com -->
             <url url="http://www.ustadmobile.com/build-dep/proguard4.10.zip"/>

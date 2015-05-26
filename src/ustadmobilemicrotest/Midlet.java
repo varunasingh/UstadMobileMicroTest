@@ -10,6 +10,7 @@ package ustadmobilemicrotest;
 //import com.ustadmobile.app.controller.UstadMobileAppController;
 //import com.ustadmobile.app.FileUtils;
 
+import com.sun.lwuit.Form;
 import com.ustadmobile.app.tests.AllTestCases;
 import com.ustadmobile.app.tests.TestUtils;
 import java.io.IOException;
@@ -19,7 +20,11 @@ import java.util.Hashtable;
 //import javax.microedition.lcdui.CommandListener;
 
 //To Display on screen
-import javax.microedition.lcdui.Display;
+//import javax.microedition.lcdui.Display;
+import com.sun.lwuit.Display;
+import com.sun.lwuit.Label;
+import com.sun.lwuit.TextField;
+import com.sun.lwuit.layouts.BoxLayout;
 //import javax.microedition.lcdui.Gauge;
 //import javax.microedition.lcdui.List;
 //import javax.microedition.lcdui.Displayable;
@@ -28,10 +33,12 @@ import javax.microedition.lcdui.Display;
 import javax.microedition.lcdui.TextBox;
 //import javax.microedition.midlet.*;
 
+import com.ustadmobile.app.forms.TestForm;
+
 /**
  * @author varuna
  */
-public class Midlet extends j2meunit.midletui.TestRunner {//extends MIDlet {// implements CommandListener {
+public class Midlet extends j2meunit.midletui.TestRunner{ //extends MIDlet {// implements CommandListener {
 
     private TextBox tbox;
     //private Command exitCommand;
@@ -41,31 +48,8 @@ public class Midlet extends j2meunit.midletui.TestRunner {//extends MIDlet {// i
         tbox = new TextBox("App Dir", 
                 "Hows it going?", 100, 0 );
         tbox = new TextBox("microedition.platform", 
-                TestUtils.getPlatform().toString(), 100, 0);
-        /*
-         * 
-        //Get Best Root Name (max available size)
-        DeviceRoots bestRoot = new DeviceRoots();
-        bestRoot = null;
-        bestRoot = FileUtils.getBestRoot();
-        String bestRootName = null;
-        if (bestRoot != null){
-            bestRootName = bestRoot.name;
-        }
-        //tbox = new TextBox("App Dir", 
-        //        bestRootName, 100, 0 ); 
-        
-        //Get All Roots Names available on the phone. 
-        DeviceRoots[] allRoots = FileUtils.getAllRoots();
-        String allRootsString = "All Roots are";
-        for (int i = 0; i<allRoots.length;i++){
-            allRootsString = allRootsString  + ", " + allRoots[i].name;
-        }
-        tbox = new TextBox("App Dir", 
-                allRootsString, 1000, 0 ); 
-        
-        */
-                
+                TestUtils.getPlatform().toString(), 100, 0); 
+  
         /*
         //Exit Command.
         exitCommand = new Command("Exit", Command.EXIT, 1);
@@ -75,9 +59,13 @@ public class Midlet extends j2meunit.midletui.TestRunner {//extends MIDlet {// i
     }
     
     //To Display on Screen
-    /*
-    public void startApp() {
-        Display.getDisplay(this).setCurrent(tbox);
+    
+    /*public void startApp() {
+        //Display.getDisplay(this).setCurrent(tbox);
+        Display.init(this);                      
+        Form f = TestForm.loadTestForm();
+        f.show();
+
     }*/
     
     //Start the tests:
@@ -85,7 +73,7 @@ public class Midlet extends j2meunit.midletui.TestRunner {//extends MIDlet {// i
         //start(new String[] { com.ustadmobile.app.tests.AllTestCases.class.getName() });
         
         
-        
+        Display.init(this);
         AllTestCases atc = new AllTestCases() ;
         int ctc = atc.suite().countTestCases();
         System.out.println("Number of Tests: " + ctc);
@@ -118,14 +106,14 @@ public class Midlet extends j2meunit.midletui.TestRunner {//extends MIDlet {// i
                         testResult.put("numFail", numFail);
                         testResult.put("logtext", 
                                 "Result");
-                        /*testResult.put("device", 
-                                TestUtils.testSettings.get("device"));*/
                         testResult.put("device", TestUtils.getPlatform().toString());
                         try {
                             String postResult = null;
+                            
                             postResult = TestUtils.sendPost(
                                     TestUtils.testSettings.get("testposturl").toString(), 
                                     testResult);
+                            
                         } catch (IOException ex) {
                             ex.printStackTrace();
                         }
@@ -146,7 +134,7 @@ public class Midlet extends j2meunit.midletui.TestRunner {//extends MIDlet {// i
      * Helpful for executing tests from command line / microemulator
      */
     public static void main(String[] args){
-        j2meunit.textui.TestRunner.main(new String[] {com.ustadmobile.app.tests.AllTestCases.class.getName()});
+        //j2meunit.textui.TestRunner.main(new String[] {com.ustadmobile.app.tests.AllTestCases.class.getName()});
     }
     
     public void pauseApp() {

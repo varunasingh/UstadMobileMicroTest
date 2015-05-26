@@ -33,6 +33,7 @@ public class AllTestCases extends TestCase {
         System.out.println("--Testing : " + TestUtils.testSettings.get("appDataURI"));
         TestSuite allTestSuite = new TestSuite("AlltestSuites");
         
+        allTestSuite.addTest(new TestFormShow());
         allTestSuite.addTest(new TestSimple());
         allTestSuite.addTest(new TestXmlParse());
         allTestSuite.addTest(new TestOPDSParse());
