@@ -8,6 +8,12 @@ import com.ustadmobile.app.DeviceRoots;
 import javax.microedition.io.Connector;
 import javax.microedition.io.file.FileConnection;
 import com.ustadmobile.app.FileUtils;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Hashtable;
+import org.kxml2.io.KXmlParser;
+import org.xmlpull.v1.XmlPullParser;
+import org.xmlpull.v1.XmlPullParserException;
 /**
  *
  * @author varuna
@@ -19,6 +25,31 @@ public class UstadMobileAppController {
      */
     public static String appDataDir = null;
     
+    public static final int MENUITEM_CATALOG = 0;
+    public static final int MENUITEM_LIBRARY = 1;
+    public static final int MENUITEM_DOWNLOAD = 2;
+    public static final int MENUITEM_USERAUTH = 3;
+    public static final int MENUITEM_ABOUT = 4;
+    
+    //Default app settings.
+    static Hashtable defaultAppSettings;
+    private static void setupDefaultSettings() {
+        Hashtable defaultAppSettings = new Hashtable();
+        defaultAppSettings.put("umcloud", "http://umcloud1.ustadmobile.com");
+        defaultAppSettings.put("tincan", 
+                "http://umcloud1.ustadmobile.com/umlrs");
+        defaultAppSettings.put("mboxsuffix", "@ustadmobile.com");
+        defaultAppSettings.put("launched", 
+                "http://adlnet.gov/expapi/verbs/launched");
+        defaultAppSettings.put("opds", "http://umcloud1.ustadmobile.com/opds/");
+        defaultAppSettings.put("opdspublic", 
+                "http://umcloud1.ustadmobile.com/opds/public/");
+        defaultAppSettings.put("lesson", 
+                "http://adlnet.gov/expapi/activities/lesson");
+    }
+    
+    
+        //defaultMimeTypes.put("gif", "image/gif");
     
     /**
      * Find out where we should put the base folder by finding the root folder
@@ -42,13 +73,18 @@ public class UstadMobileAppController {
             return null;
         }
     }
+    
+    public static String getPlatform(){
+        return System.getProperty("microedition.platform");
+    }
 
      /**
      * Find out where we should put the base folder by finding the root folder
      * with the maximum amount of space (this should be the memory card generally)
      */
     public static String setupAppDataDir() {
-        String baseFolder = System.getProperty("fileconn.dir.photos") + "umobiledata";
+        String baseFolder = System.getProperty("fileconn.dir.photos") + 
+                "umobiledata";
         
         try {
             FileConnection bCon = (FileConnection)Connector.open(baseFolder);
@@ -63,8 +99,36 @@ public class UstadMobileAppController {
         return null;
     }
     
+    public static XmlPullParser parseXml(InputStream is) throws 
+            XmlPullParserException, IOException{
+        KXmlParser parser = new KXmlParser();
+        parser.setInput(is, "utf-8");
+        return parser;
+    }
+    
     public final static String getBaseDir() {
         return appDataDir;
+    }
+    
+    public static void handleMenuClick(int itemId){
+        
+        switch(itemId){
+            case UstadMobileAppController.MENUITEM_LIBRARY:
+                //go to page
+                break;
+            case UstadMobileAppController.MENUITEM_DOWNLOAD:
+                //go to page
+                break;
+            case UstadMobileAppController.MENUITEM_USERAUTH:
+                //go to page
+                break;
+            case UstadMobileAppController.MENUITEM_ABOUT:
+                //go to page
+                break;
+            case UstadMobileAppController.MENUITEM_CATALOG:
+                //go to page
+                break;
+        }
     }
    
 }

@@ -30,7 +30,8 @@ public class AllTestCases extends TestCase {
         }
         
         System.out.println("Starting Tests..");
-        System.out.println("--Testing : " + TestUtils.testSettings.get("appDataURI"));
+        System.out.println("--Testing : " + 
+                TestUtils.testSettings.get("appDataURI"));
         TestSuite allTestSuite = new TestSuite("AlltestSuites");
         
         allTestSuite.addTest(new TestFormShow());
@@ -38,6 +39,8 @@ public class AllTestCases extends TestCase {
         allTestSuite.addTest(new TestXmlParse());
         allTestSuite.addTest(new TestOPDSParse());
         allTestSuite.addTest(new TestOPFParse());
+        allTestSuite.addTest(new TestDownloadURLToFile());
+        allTestSuite.addTest(new TestRMS());
         return allTestSuite;
 
     }

@@ -33,6 +33,8 @@ import javax.microedition.io.file.FileSystemRegistry;
 public class FileUtils {
     protected static final String FILE_PREFIX = "file:///";
     private static final String SDCARD_STRING = "SDCard";
+    /** The File seperator character */
+    public static char FILE_SEP = '/';
 
     /*
     * Creates the File, Dir.
@@ -248,6 +250,46 @@ public class FileUtils {
         InputStream is = fCon.openInputStream();
         return is;
     }
+    
+    public static String getFileContents(String fileURI) throws Exception{
+        //load from the file
 
+        FileConnection fCon = (FileConnection)Connector.open(fileURI,
+            Connector.READ);
+        InputStream is = null;
+        String str = null;
+        if(fCon.exists()) 
+            {
+                int size = (int)fCon.fileSize();
+                is= fCon.openInputStream();
+                byte bytes[] = new byte[size];
+                is.read(bytes, 0, size);
+                str = new String(bytes, 0, size);
+                is.close();
+                return str;
+            }
+        return null;
+    }
+    
+    /**
+     * Join two paths - make sure there is just one FILE_SEP character 
+     * between them
+     */
+    public static String joinPath(String path1, String path2) {
+        if(path1.charAt(path1.length()-1) != FILE_SEP) {
+            path1 += FILE_SEP;
+        }
+        
+        if(path2.length() > 0 && path2.charAt(0) == FILE_SEP) {
+            path2 = path2.substring(1);
+        }
+        
+        return path1 + path2;
+    }
+    
+    public static String getBaseName(String url){
+        int pos = url.lastIndexOf('/');
+        return url.substring(pos + 1);
+    }
 
 }

@@ -1,6 +1,6 @@
 /*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+ * UstadJS is for common functions used between App and Content.
+ * 
  */
 package com.ustadmobile.app;
 

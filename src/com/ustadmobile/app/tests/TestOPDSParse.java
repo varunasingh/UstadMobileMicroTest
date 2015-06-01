@@ -3,6 +3,7 @@
  * and open the template in the editor.
  */
 package com.ustadmobile.app.tests;
+import com.ustadmobile.app.controller.UstadMobileAppController;
 import com.ustadmobile.app.opds.UstadJSOPDSAuthor;
 import com.ustadmobile.app.opds.UstadJSOPDSEntry;
 import com.ustadmobile.app.opds.UstadJSOPDSFeed;
@@ -34,7 +35,7 @@ public class TestOPDSParse extends TestCase{
         /*ByteArrayInputStream bais = 
                 TestUtils.getHTTPBytes(TestUtils.testSettings.get("opdsxml").toString());*/
         KXmlParser parser = new KXmlParser();
-        parser = (KXmlParser) TestUtils.parseXml(bais);
+        parser = (KXmlParser) UstadMobileAppController.parseXml(bais);
         UstadJSOPDSFeed feed = UstadJSOPDSFeed.loadFromXML(parser);
         assertEquals("Test got correct title from feed",
                 "Ustad Mobile Public OPDS Catalog", 
