@@ -14,7 +14,7 @@ public class UstadMobileLoginController {
     }
     
     public static void checkLogin(String username, String password){
-        
+        //~String httpResponse = Impl.getHTTPResponseAsBytes()
     }
     
 }

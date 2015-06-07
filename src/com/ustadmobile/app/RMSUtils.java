@@ -3,6 +3,8 @@
  * and open the template in the editor.
  */
 package com.ustadmobile.app;
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
 import java.util.Hashtable;
 import javax.microedition.rms.*;
 
@@ -92,6 +94,40 @@ public class RMSUtils {
         }catch (Exception e){}
     }
     
+    public void insertBytes(byte[] recordBytes){
+        //byte[] recordBytes = record.getBytes();
+        
+        try{
+            rs.addRecord(recordBytes, 0, recordBytes.length);
+        }catch(Exception e) {}
+        
+        /*
+        try{
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            DataOutputStream dos = new DataOutputStream(baos);
+            dos.writeShort(recordBytes.length);
+            dos.write(recordBytes);
+            dos.write(recordBytes);
+            rs.addRecord(recordBytes, 0, recordBytes.length);
+        }catch (Exception e){}*/
+    }
+    
+    public byte[] readBytes(){
+        try{
+            byte[] records = new byte[5];
+            int length;
+            for (int i = 1; i<= rs.getNumRecords(); i++){
+                if (rs.getRecordSize(i) > records.length){
+                    records = new byte[rs.getRecordSize(i)];
+                }
+                length = rs.getRecord(i, records, 0);
+                //ht.put(String.valueOf(i),new String(records, 0, length));
+            }
+            //return ht;
+            return records;
+        }catch (Exception e){}
+        return null;
+    }
     
      
 }

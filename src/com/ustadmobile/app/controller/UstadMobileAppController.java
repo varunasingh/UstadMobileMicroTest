@@ -8,6 +8,7 @@ import com.ustadmobile.app.DeviceRoots;
 import javax.microedition.io.Connector;
 import javax.microedition.io.file.FileConnection;
 import com.ustadmobile.app.FileUtils;
+import com.ustadmobile.app.RMSUtils;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Hashtable;
@@ -32,7 +33,7 @@ public class UstadMobileAppController {
     public static final int MENUITEM_ABOUT = 4;
     
     //Default app settings.
-    static Hashtable defaultAppSettings;
+    public static Hashtable appSettings;
     private static void setupDefaultSettings() {
         Hashtable defaultAppSettings = new Hashtable();
         defaultAppSettings.put("umcloud", "http://umcloud1.ustadmobile.com");
@@ -46,8 +47,38 @@ public class UstadMobileAppController {
                 "http://umcloud1.ustadmobile.com/opds/public/");
         defaultAppSettings.put("lesson", 
                 "http://adlnet.gov/expapi/activities/lesson");
+        appSettings = new Hashtable();
+        appSettings = defaultAppSettings;
     }
     
+    public static void setDefaultAppSettings(){
+        setupDefaultSettings();
+    }
+    
+    public static Hashtable getAppSettings(){
+        if (appSettings == null){
+            setDefaultAppSettings();
+        }
+        return appSettings;
+    }
+    
+    public static void getCurrentAppSettings(){
+        
+        //Get RMS config
+        RMSUtils rms = new RMSUtils("UstadMobileApp");
+        rms.openRMS();
+        byte[] rmsByteArray = rms.readBytes();
+        System.out.println("here..");
+        Hashtable rmsHashtable = rms.readRMS();
+        if(!rmsHashtable.contains("umcloud")){
+            //HashTable aint existin..
+            //RMS aint existin..
+            //Hashtable defaultHashtable = 
+            
+        }
+        rms.closeRMS();
+        //return null;
+    }
     
         //defaultMimeTypes.put("gif", "image/gif");
     
@@ -76,6 +107,10 @@ public class UstadMobileAppController {
     
     public static String getPlatform(){
         return System.getProperty("microedition.platform");
+    }
+    
+    public static String getLocale(){
+        return System.getProperty("microedition.locale");
     }
 
      /**

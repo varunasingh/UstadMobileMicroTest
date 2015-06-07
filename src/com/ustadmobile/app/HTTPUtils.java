@@ -165,7 +165,7 @@ public class HTTPUtils {
     }
     
     public static void downloadURLToFile(String url, String destDir, 
-            String filename) throws IOException {
+            String filename) throws Exception {
         //Validate the url
         
         //Validate the filename
@@ -173,39 +173,65 @@ public class HTTPUtils {
             filename = FileUtils.getBaseName(url);
         }
         
-        HttpConnection httpURLConnection = (HttpConnection) Connector.open(url);
-        httpURLConnection.setRequestMethod(HttpConnection.GET); //Get method
+        HttpConnection httpURLConnection = null;
+        Exception exception=null;
+        FileConnection file = null;
+        InputStream inputURLStream = null;
+        ByteArrayOutputStream outputStream = null;
         
-        if (httpURLConnection.getResponseCode() != HttpConnection.HTTP_OK) {
-            throw new IOException("Request to " + url + " is not HTTP 200 OK");
-        }
-        
-        InputStream inputURLStream = httpURLConnection.openInputStream();
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        byte[] buffer = new byte[1024];
-        
-        //int bytesRead = inputURLStream.read(buffer, 0, buffer.length);
-        int bytesRead = -1;
-        while ((bytesRead = inputURLStream.read(buffer, 0, buffer.length)) != -1) {
-            outputStream.write(buffer, 0, bytesRead);
-        }
+        try{
+            
+            httpURLConnection = (HttpConnection) Connector.open(url);
+            httpURLConnection.setRequestMethod(HttpConnection.GET); //Get method
+            file = (FileConnection) Connector.open(destDir + filename);
+            if (file.exists()) {
+                //No need to re create it.
+            } else {
+                file.create();
+            }
 
-        //Close the HTTP connection.
-        httpURLConnection.close();
-        
-        FileConnection file = (FileConnection) Connector.open(destDir + filename);
-        if (file.exists()) {
-            //No need to re create it.
-        } else {
-            file.create();
+            if (httpURLConnection.getResponseCode() != HttpConnection.HTTP_OK) {
+                throw new IOException("Request to " + url + " is not HTTP 200 OK");
+            }
+
+            inputURLStream = httpURLConnection.openInputStream();
+            outputStream = new ByteArrayOutputStream();
+            byte[] buffer = new byte[1024];
+
+            //int bytesRead = inputURLStream.read(buffer, 0, buffer.length);
+            int bytesRead = -1;
+            while ((bytesRead = inputURLStream.read(buffer, 0, buffer.length)) != -1) {
+                outputStream.write(buffer, 0, bytesRead);
+                file.openOutputStream().write(buffer);
+            }
+            
+            
+            //file.openOutputStream().write(outputStream.toByteArray());
+
+            file.setReadable(true);
+            System.gc();
+            
+        }catch(Exception e){
+            exception.equals(e);
+        }finally{
+            if(exception != null){
+                throw exception;
+                //Throw Exception
+            }
+            if (httpURLConnection != null){
+                httpURLConnection.close();
+            }
+            if ( file != null){
+                file.close();
+            }
+            if (inputURLStream != null){
+                inputURLStream.close();
+            }
+            if(outputStream != null){
+                outputStream.close();
+            }
         }
-        file.openOutputStream().write(outputStream.toByteArray());
-        outputStream.close();
-        file.setReadable(true);
-        file.close();
-        System.gc();
+        
     }
 
-    
-    
 }

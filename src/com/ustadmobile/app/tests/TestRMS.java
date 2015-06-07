@@ -5,6 +5,8 @@
 package com.ustadmobile.app.tests;
 
 import com.ustadmobile.app.RMSUtils;
+import com.ustadmobile.app.SerializedHashtable;
+import com.ustadmobile.app.controller.UstadMobileAppController;
 import j2meunit.framework.TestCase;
 import java.util.Hashtable;
 
@@ -19,6 +21,9 @@ public class TestRMS extends TestCase {
     }
     
     public void runTest() throws Throwable{
+        
+        UstadMobileAppController.getCurrentAppSettings();
+        
         RMSUtils rms = new RMSUtils("UstadMobileApp");
         rms.deleteRMS();
         String string1 = "Hey, hows it going?";
@@ -36,6 +41,25 @@ public class TestRMS extends TestCase {
                 rmsht.get("1"));
         assertEquals("RMS read and write test success", string2,
                 rmsht.get("2"));
+        
+        Hashtable appSettings = UstadMobileAppController.getAppSettings();
+        byte[] appSettingsByteArray = 
+                SerializedHashtable.hashTabletoStream(appSettings);
+        rms.deleteRMS();
+        rms.openRMS();
+        
+        rms.insertBytes(appSettingsByteArray);
+        rms.closeRMS();
+        
+        rms.openRMS();
+        byte[] appSettingsByteArrayRMS = rms.readBytes();
+        Hashtable appSettingsRMS = SerializedHashtable.streamToHashtable(
+                appSettingsByteArrayRMS);
+        
+        assertEquals("RMS app Settings serialisable test", 
+                appSettings.get("umcloud"), appSettingsRMS.get("umcloud"));
+        
+        rms.closeRMS();
         
         
     }

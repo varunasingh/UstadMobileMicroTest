@@ -23,9 +23,13 @@ try 3: Images
 package com.ustadmobile.app;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.PrintStream;
 import java.util.Enumeration;
 import java.util.Vector;
+import javax.microedition.amms.control.PriorityControl;
 import javax.microedition.io.Connector;
+import javax.microedition.io.OutputConnection;
 import javax.microedition.io.file.FileConnection;
 import javax.microedition.io.file.FileSystemRegistry;
 
@@ -35,14 +39,17 @@ public class FileUtils {
     private static final String SDCARD_STRING = "SDCard";
     /** The File seperator character */
     public static char FILE_SEP = '/';
+    public static final String USTAD_CONTENT_DIR = "ustadmobileContent";
 
+    //The fileURI?
+    //String fileURI;
     /*
     * Creates the File, Dir.
     *fileName should start with "file:///"
     *
     */
     public static boolean createRecursively(String fileName, int mode, 
-        boolean isDir) {
+        boolean isDir) throws IOException {
 
         boolean created = false;
         boolean parentCreated = false;
@@ -179,38 +186,60 @@ public class FileUtils {
             }
             return created;
     }
+    
+    protected static boolean checkDir(String dirName){
+        try{
+            dirName = dirName.trim();
+            if (!dirName.endsWith("/")){
+                dirName += "/";
+            }
+            try{
+                FileConnection fc = (FileConnection) Connector.open(dirName, 
+                    Connector.READ_WRITE);
+                if (fc.exists()){
+                    return true;
+                }
+                return false;
+            }catch(Exception e) {}
+            return false;
+        }catch(Exception e){}
+        return false;
+    }
 
     protected static boolean createFileOrDir(String fileName, int mode, 
-            boolean isDir) {
+            boolean isDir) throws IOException {
 
             boolean created = false;
-
+            /*
             try {
-                    fileName = fileName.trim();
+            * */
+            fileName = fileName.trim();
 
-                    if (isDir && !fileName.endsWith("/")) {
-                            fileName += "/";
-                    }
+            if (isDir && !fileName.endsWith("/")) {
+                    fileName += "/";
+            }
 
-                    FileConnection fc = (FileConnection) Connector.open(fileName, mode);
+            FileConnection fc = (FileConnection) Connector.open(fileName, mode);
 
-                    if (fc.exists()) {
-                            created = true;
+            if (fc.exists()) {
+                    created = true;
+            } else {
+                    if (isDir) {
+                            fc.mkdir();
                     } else {
-                            if (isDir) {
-                                    fc.mkdir();
-                            } else {
-                                    fc.create();
-                            }
-                            created = true;
+                            fc.create();
                     }
+                    created = true;
+            }
 
+            /*
             } catch (Throwable t) {
                     t.printStackTrace();
             } finally {
             }
-
+            * */
             return created;
+            
     }
 
     public static String parentOf(String inStr) {
@@ -291,5 +320,56 @@ public class FileUtils {
         int pos = url.lastIndexOf('/');
         return url.substring(pos + 1);
     }
+    
+    public static long getLastModified(String fileURI){
+        try{
+            FileConnection fCon = (FileConnection)Connector.open(fileURI,
+                Connector.READ);
+            long lastModified = fCon.lastModified();
+            fCon.close();
+            return lastModified;
+        }catch(Exception e){}
+        return -1;
+    }
+    
+    public static boolean writeStringToFile(String string, String fileURI){
+        try{
+            FileConnection fileCon = (FileConnection) Connector.open(fileURI, 
+                    Connector.READ_WRITE);
+            
+            if (!fileCon.exists()){
+                fileCon.create();
+            }
+            if (!fileCon.canWrite() && string != null){
+                return false;
+            }
+            
+            OutputStream outputStream = fileCon.openOutputStream();
+            
+            byte[] stringBytes = string.getBytes();
+            outputStream.write(stringBytes);
+            
+            /*
+            PrintStream printStream = new PrintStream(outputStream);
+            printStream.print(string);
+            printStream.close();
+            */
+            outputStream.close();
+            fileCon.close();
+            return true;
+            
+        }catch(Exception e){}
+        return false;
+    }
+    
+    public static long getFileSize(String fileURI) throws IOException{
+        FileConnection fCon = (FileConnection) Connector.open(fileURI, 
+                Connector.READ);
+        long size = fCon.fileSize();
+        fCon.close();
+        return size;
+        
+    }
+    
 
 }
